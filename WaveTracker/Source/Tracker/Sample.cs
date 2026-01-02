@@ -232,49 +232,50 @@ namespace WaveTracker.Tracker {
         }
 
         public void TrimSilence() {
-            List<short> sampleDataLeft = sampleDataL.ToList();
-            List<short> sampleDataRight = sampleDataR.ToList();
-            if (sampleDataLeft.Count > 1000) {
+            int soundStartIndex = 0;
+            int soundEndIndex = sampleDataL.Length - 1;
+
+            if (sampleDataL.Length > 1000) {
                 if (IsStereo) {
-                    for (int i = 0; i < sampleDataLeft.Count; ++i) {
-                        if (Math.Abs(sampleDataLeft[i] / (float)short.MaxValue) > 0.001f || Math.Abs(sampleDataRight[i]) > 0.001f) {
+                    for (int i = 0; i < sampleDataL.Length; ++i) {
+                        if (Math.Abs(sampleDataL[i] / (float)short.MaxValue) > 0.001f
+                            || Math.Abs(sampleDataR[i] / (float)short.MaxValue) > 0.001f) {
                             break;
                         }
 
-                        sampleDataLeft.RemoveAt(i);
-                        sampleDataRight.RemoveAt(i);
+                        soundStartIndex = i;
                     }
 
-                    for (int i = sampleDataLeft.Count - 1; i >= 0; --i) {
-                        if (Math.Abs(sampleDataLeft[i] / (float)short.MaxValue) > 0.001f || Math.Abs(sampleDataRight[i]) > 0.001f) {
+                    for (int i = sampleDataL.Length - 1; i >= 0; --i) {
+                        if (Math.Abs(sampleDataL[i] / (float)short.MaxValue) > 0.001f
+                            || Math.Abs(sampleDataR[i] / (float)short.MaxValue) > 0.001f) {
                             break;
                         }
 
-                        sampleDataLeft.RemoveAt(i);
-                        sampleDataRight.RemoveAt(i);
+                        soundEndIndex = i;
                     }
                 }
                 else {
-                    for (int i = 0; i < sampleDataLeft.Count; ++i) {
-                        if (Math.Abs(sampleDataLeft[i] / (float)short.MaxValue) > 0.001f) {
+                    for (int i = 0; i < sampleDataL.Length; ++i) {
+                        if (Math.Abs(sampleDataL[i] / (float)short.MaxValue) > 0.001f) {
                             break;
                         }
 
-                        sampleDataLeft.RemoveAt(i);
+                        soundStartIndex = i;
                     }
 
-                    for (int i = sampleDataLeft.Count - 1; i >= 0; --i) {
-                        if (Math.Abs(sampleDataLeft[i] / (float)short.MaxValue) > 0.001f) {
+                    for (int i = sampleDataL.Length - 1; i >= 0; --i) {
+                        if (Math.Abs(sampleDataL[i] / (float)short.MaxValue) > 0.001f) {
                             break;
                         }
 
-                        sampleDataLeft.RemoveAt(i);
+                        soundEndIndex = i;
                     }
                 }
             }
 
-            sampleDataL = sampleDataLeft.ToArray();
-            sampleDataR = sampleDataRight.ToArray();
+            sampleDataL = sampleDataL.Skip(soundStartIndex).Take(soundEndIndex - soundStartIndex).ToArray();
+            sampleDataR = sampleDataR.Skip(soundStartIndex).Take(soundEndIndex - soundStartIndex).ToArray();
         }
 
         public float GetMonoSample(float time, float startPercentage) {
