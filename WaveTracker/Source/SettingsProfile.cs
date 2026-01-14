@@ -167,6 +167,7 @@ namespace WaveTracker {
                 {"Edit\\Backspace", new KeyboardShortcut(Keys.Back) },
                 {"Edit\\Insert", new KeyboardShortcut(Keys.Insert) },
                 {"Edit\\Delete", new KeyboardShortcut(Keys.Delete) },
+                {"Edit\\Delete row", new KeyboardShortcut(Keys.Delete, KeyModifier.Ctrl) },
                 {"Edit\\Select all", new KeyboardShortcut(Keys.A, KeyModifier.Ctrl) },
                 {"Edit\\Deselect", new KeyboardShortcut(Keys.Escape) },
 

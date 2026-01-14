@@ -13,6 +13,7 @@ namespace WaveTracker.UI {
     public class PatternEditor : Clickable {
         private const int ROW_HEIGHT = 7;
         private const int ROW_COLUMN_WIDTH = 22;
+        private const int NumVisibleLinesDiv = 5;
 
         public bool EditMode { get; set; }
         public int CurrentOctave { get; set; }
@@ -152,7 +153,8 @@ namespace WaveTracker.UI {
                         new MenuOption("Cut", Cut, SelectionIsActive && !App.VisualizerMode),
                         new MenuOption("Copy", CopyToClipboard, SelectionIsActive && !App.VisualizerMode),
                         new MenuOption("Paste", PasteFromClipboard, HasClipboard && !App.VisualizerMode),
-                        new MenuOption("Delete", Delete, SelectionIsActive && !App.VisualizerMode),
+                        new MenuOption("Delete", () => Delete(false), SelectionIsActive && !App.VisualizerMode),
+                        new MenuOption("Delete row", () => Delete(true), SelectionIsActive && !App.VisualizerMode),
                         new MenuOption("Select All", SelectAll, !App.VisualizerMode),
                         null,
                         new SubMenu("Pattern", [
@@ -464,7 +466,7 @@ namespace WaveTracker.UI {
                 }
                 SetSelectionEnd(GetCursorPositionFromPointClampedToFrame(MouseX, MouseY, cursorPosition.Frame, GetMouseLineNumber() > NumVisibleLines / 2));
             }
-            if (DoubleClicked && GetMouseLineNumber() == NumVisibleLines / 2) {
+            if (DoubleClicked && GetMouseLineNumber() == NumVisibleLines / NumVisibleLinesDiv) {
                 selection.IsActive = true;
                 SetSelectionStart(cursorPosition);
                 selectionStart.Row = 0;
@@ -850,7 +852,10 @@ namespace WaveTracker.UI {
                 Insert();
             }
             if (KeyPress(App.Shortcuts["Edit\\Delete"])) {
-                Delete();
+                Delete(false);
+            }
+            else if (KeyPress(App.Shortcuts["Edit\\Delete row"])) {
+                Delete(true);
             }
 
             #endregion
@@ -1039,7 +1044,7 @@ namespace WaveTracker.UI {
             int frame = renderCursorPos.Frame;
             int row = renderCursorPos.Row;
             int length = App.CurrentSong[frame].GetModifiedLength();
-            for (int i = NumVisibleLines / 2; i < NumVisibleLines; i++) {
+            for (int i = NumVisibleLines / NumVisibleLinesDiv; i < NumVisibleLines; i++) {
                 if (frameWrap == 0 || App.Settings.PatternEditor.ShowPreviousNextFrames) {
                     DrawRowBG(i, frame, row, frameWrap);
                 }
@@ -1055,7 +1060,7 @@ namespace WaveTracker.UI {
             frame = renderCursorPos.Frame;
             row = renderCursorPos.Row;
             frameWrap = 0;
-            for (int i = NumVisibleLines / 2; i >= 0; i--) {
+            for (int i = NumVisibleLines / NumVisibleLinesDiv; i >= 0; i--) {
                 if (frameWrap == 0 || App.Settings.PatternEditor.ShowPreviousNextFrames) {
                     DrawRowBG(i, frame, row, frameWrap);
                 }
@@ -1078,7 +1083,7 @@ namespace WaveTracker.UI {
             frame = renderCursorPos.Frame;
             row = renderCursorPos.Row;
             length = App.CurrentSong[frame].GetModifiedLength();
-            for (int i = NumVisibleLines / 2; i < NumVisibleLines; i++) {
+            for (int i = NumVisibleLines / NumVisibleLinesDiv; i < NumVisibleLines; i++) {
                 if (frameWrap == 0 || App.Settings.PatternEditor.ShowPreviousNextFrames) {
                     DrawRow(i, frame, row, frameWrap);
                     if (frameWrap != 0) {
@@ -1097,7 +1102,7 @@ namespace WaveTracker.UI {
             frame = renderCursorPos.Frame;
             row = renderCursorPos.Row;
             frameWrap = 0;
-            for (int i = NumVisibleLines / 2; i >= 0; i--) {
+            for (int i = NumVisibleLines / NumVisibleLinesDiv; i >= 0; i--) {
                 if (frameWrap == 0 || App.Settings.PatternEditor.ShowPreviousNextFrames) {
                     DrawRow(i, frame, row, frameWrap);
                     if (frameWrap != 0) {
@@ -1724,14 +1729,14 @@ namespace WaveTracker.UI {
         public void Cut() {
             if (SelectionIsActive) {
                 CopyToClipboard();
-                Delete();
+                Delete(false);
             }
         }
 
         /// <summary>
         /// Removes all data in the selection
         /// </summary>
-        public void Delete() {
+        public void Delete(bool wholeRow) {
             if (SelectionIsActive) {
                 for (int row = selection.min.Row; row <= selection.max.Row; ++row) {
                     for (int column = selection.min.CellColumn; column <= selection.max.CellColumn; ++column) {
@@ -1740,7 +1745,9 @@ namespace WaveTracker.UI {
                 }
             }
             else {
-                for (int column = selection.min.CellColumn; column <= selection.max.CellColumn; ++column) {
+                int startCol = wholeRow ? 0 : selection.min.CellColumn;
+                int endCol = wholeRow ? App.CurrentSong.GetNumColumns(cursorPosition.Channel) : selection.max.CellColumn;
+                for (int column = startCol; column <= endCol; ++column) {
                     SelectionPattern[cursorPosition.Row, column] = WTPattern.EVENT_EMPTY;
                     if (WTPattern.GetCellTypeFromCellColumn(column) == CellType.Note) {
                         SelectionPattern[cursorPosition.Row, column + 1] = WTPattern.EVENT_EMPTY;
@@ -2423,7 +2430,7 @@ namespace WaveTracker.UI {
             int lineNum = y / ROW_HEIGHT;
 
             // move to the first line, then forward lineNum lines.
-            p.MoveToRow(p.Row - NumVisibleLines / 2 + lineNum, App.CurrentSong);
+            p.MoveToRow(p.Row - NumVisibleLines / NumVisibleLinesDiv + lineNum, App.CurrentSong);
             return p;
         }
 
@@ -2442,7 +2449,7 @@ namespace WaveTracker.UI {
             int lineNum = y / ROW_HEIGHT;
 
             // move to the first line, then forward lineNum lines.
-            p.MoveToRow(p.Row - NumVisibleLines / 2 + lineNum, App.CurrentSong);
+            p.MoveToRow(p.Row - NumVisibleLines / NumVisibleLinesDiv + lineNum, App.CurrentSong);
             if (p.Frame != frame) {
                 p.Frame = frame;
                 p.Row = isAboveClampedFrame ? App.CurrentSong[frame].GetModifiedLength() - 1 : 0;
@@ -2459,7 +2466,7 @@ namespace WaveTracker.UI {
 
             int x = ChannelHeaders[position.Channel].x + GetColumnStartPositionOffset(position.Column);
 
-            int lineNumber = NumVisibleLines / 2;
+            int lineNumber = NumVisibleLines / NumVisibleLinesDiv;
 
             return new Rectangle(x, lineNumber * ROW_HEIGHT, GetWidthOfCursorColumn(position.Column), ROW_HEIGHT);
         }

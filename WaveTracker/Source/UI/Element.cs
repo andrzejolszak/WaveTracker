@@ -15,7 +15,7 @@ namespace WaveTracker.UI {
         protected int GlobalX { get { return x + OffX; } }
         protected int GlobalY { get { return y + OffY; } }
 
-        public bool InFocus {
+        public virtual bool InFocus {
             get {
                 return Input.focus == null || (parent == null ? Input.focus == this : parent.InFocus || Input.focus == this);
             }

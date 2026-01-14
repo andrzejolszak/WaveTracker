@@ -57,7 +57,7 @@ namespace WaveTracker.UI {
         private CheckboxLabeled showInVisualizer;
         private int lastMouseHoverSample;
         private ScrollbarHorizontal viewportScrollbar;
-        private SpriteButton undo, redo, delete, zoomIn, zoomOut, zoomInVertical, zoomOutVertical, fadeIn, fadeOut, reverse;
+        private SpriteButton undo, redo, delete, crop, zoomIn, zoomOut, zoomInVertical, zoomOutVertical, fadeIn, fadeOut, reverse;
         private DropdownButton tools;
 
         public new bool InFocus => base.InFocus || Dialogs.currentSampleModifyDialog != null && Dialogs.currentSampleModifyDialog.InFocus;
@@ -103,6 +103,9 @@ namespace WaveTracker.UI {
             delete = new SpriteButton(buttonsX, buttonsY, 15, 15, 360, 0, this);
             delete.SetTooltip("Delete", "Delete the selected audio");
             buttonsX += 18;
+            crop = new SpriteButton(buttonsX, buttonsY, 15, 15, 360, 0, this);
+            crop.SetTooltip("Crop", "Crop to selected audio");
+            buttonsX += 18;
             zoomIn = new SpriteButton(buttonsX, buttonsY, 15, 15, 465, 0, this);
             zoomIn.SetTooltip("Zoom in (horizontal)", "Zoom into the audio view horizontally");
             buttonsX += 15;
@@ -128,6 +131,7 @@ namespace WaveTracker.UI {
             tools = new DropdownButton("Tools...", buttonsX, buttonsY, 50, this);
             tools.SetMenuItems([
                 new DropdownButton.Option("Delete", () => SelectionIsActive),
+                new DropdownButton.Option("Crop", () => SelectionIsActive),
                 new DropdownButton.Option("Fade in",() => Sample.Length > 0),
                 new DropdownButton.Option("Fade out",() => Sample.Length > 0),
                 new DropdownButton.Option("Reverse",() => Sample.Length > 0),
@@ -160,6 +164,7 @@ namespace WaveTracker.UI {
             undo.enabled = CanUndo;
             redo.enabled = CanRedo;
             delete.enabled = SelectionIsActive;
+            crop.enabled = SelectionIsActive;
             zoomIn.enabled = CanZoomIn && Sample.Length > 0;
             zoomOut.enabled = CanZoomOut && Sample.Length > 0;
             zoomInVertical.enabled = zoomLevelVertical < 50 && Sample.Length > 0;
@@ -230,6 +235,7 @@ namespace WaveTracker.UI {
                             null,
                             new SubMenu("Tools", new MenuItemBase[] {
                                 new MenuOption("Delete", Delete, SelectionIsActive),
+                                new MenuOption("Crop", Crop, SelectionIsActive),
                                 new MenuOption("Fade In", FadeIn),
                                 new MenuOption("Fade Out", FadeOut),
                                 new MenuOption("Reverse", Reverse),
@@ -315,6 +321,9 @@ namespace WaveTracker.UI {
                 if (delete.Clicked) {
                     Delete();
                 }
+                if (crop.Clicked) {
+                    Crop();
+                }
 
                 tools.Update();
                 if (tools.SelectedAnItem) {
@@ -323,30 +332,33 @@ namespace WaveTracker.UI {
                             Delete();
                             break;
                         case 1:
-                            FadeIn();
+                            Crop();
                             break;
                         case 2:
-                            FadeOut();
+                            FadeIn();
                             break;
                         case 3:
-                            Reverse();
+                            FadeOut();
                             break;
                         case 4:
-                            Invert();
+                            Reverse();
                             break;
                         case 5:
-                            Normalize();
+                            Invert();
                             break;
                         case 6:
-                            RemoveDCOffset();
+                            Normalize();
                             break;
                         case 7:
-                            MixToMono();
+                            RemoveDCOffset();
                             break;
                         case 8:
-                            OpenAmplifier();
+                            MixToMono();
                             break;
                         case 9:
+                            OpenAmplifier();
+                            break;
+                        case 10:
                             OpenBitcrusher();
                             break;
 
@@ -478,6 +490,13 @@ namespace WaveTracker.UI {
 
         private void Delete() {
             Sample.Delete(SelectionMin, SelectionMax);
+            SelectionIsActive = false;
+            AddToUndoHistory();
+        }
+
+        private void Crop() {
+            Sample.Delete(SelectionMax, Sample.Length);
+            Sample.Delete(0, SelectionMin);
             SelectionIsActive = false;
             AddToUndoHistory();
         }
@@ -617,6 +636,7 @@ namespace WaveTracker.UI {
             undo.Draw();
             redo.Draw();
             delete.Draw();
+            crop.Draw();
             zoomIn.Draw();
             zoomOut.Draw();
             zoomInVertical.Draw();

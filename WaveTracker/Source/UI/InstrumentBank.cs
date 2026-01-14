@@ -16,6 +16,12 @@ namespace WaveTracker.UI {
             }
         }
 
+        public override bool InFocus {
+            get {
+                return base.InFocus || App.InstrumentEditor.IsOpen;
+            }
+        }
+
         public SpriteButton bNewWave, bNewNoise, bNewSample, bRemove, bDuplicate, bMoveUp, bMoveDown, bRename;
         public SpriteButton bEdit;
         public Menu menu;
