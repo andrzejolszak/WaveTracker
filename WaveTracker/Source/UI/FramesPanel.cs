@@ -23,12 +23,13 @@ namespace WaveTracker.UI {
             frames = new FrameButton[25];
             for (int i = 0; i < frames.Length; ++i) {
                 frames[i] = new FrameButton(i - frames.Length / 2, this);
-                frames[i].x = 54 + i * 18;
+                frames[i].x = i * 18;
                 frames[i].y = 21;
             }
         }
 
         public void Update() {
+            this.width = App.WindowWidth - 160;
             if (InFocus) {
                 foreach (FrameButton button in frames) {
                     button.Update();
@@ -81,12 +82,11 @@ namespace WaveTracker.UI {
             bDuplicateFrame.Draw();
             bMoveLeft.Draw();
             bMoveRight.Draw();
-            DrawRect(67, 11, 423, 29, new Color(32, 37, 64));
+            DrawRect(67, 11, this.width - 70, 29, new Color(32, 37, 64));
             foreach (FrameButton button in frames) {
                 button.Draw();
             }
             DrawRect(54, 11, 13, 29, new Color(223, 224, 232));
-            DrawRect(490, 11, 13, 29, new Color(223, 224, 232));
         }
     }
 }

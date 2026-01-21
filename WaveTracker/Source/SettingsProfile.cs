@@ -31,7 +31,7 @@ namespace WaveTracker {
 
         }
         public class CategoryGeneral {
-            public int ScreenScale { get; set; } = 2;
+            public int ScreenScale { get; set; } = 3;
             public bool UseHighResolutionText { get; set; } = false;
 
             public int OscilloscopeMode { get; set; } = 2;
@@ -43,14 +43,14 @@ namespace WaveTracker {
         public class CategoryFiles {
             public string DefaultTicksPerRow { get; set; } = "4";
             public int DefaultRowsPerFrame { get; set; } = 64;
-            public int DefaultNumberOfChannels { get; set; } = 12;
+            public int DefaultNumberOfChannels { get; set; } = 8;
             public string DefaultAuthorName { get; set; } = "";
             public int DefaultRowPrimaryHighlight { get; set; } = 16;
             public int DefaultRowSecondaryHighlight { get; set; } = 4;
         }
 
         public class CategoryAppearance {
-            public ColorTheme Theme { get; set; } = ColorTheme.Default;
+            public ColorTheme Theme { get; set; } = ColorTheme.OpenMPT;
             public void Validate() {
                 Theme.Validate();
             }
@@ -58,12 +58,12 @@ namespace WaveTracker {
 
         public class CategoryPatternEditor {
             public bool ShowRowNumbersInHex { get; set; } = false;
-            public bool ShowNoteOffAndReleaseAsText { get; set; } = false;
+            public bool ShowNoteOffAndReleaseAsText { get; set; } = true;
             public bool FadeVolumeColumn { get; set; } = true;
             public bool ShowPreviousNextFrames { get; set; } = true;
             public bool IgnoreStepWhenMoving { get; set; } = true;
             public MoveToNextRowBehavior StepAfterNumericInput { get; set; } = MoveToNextRowBehavior.Always;
-            public bool WrapCursorHorizontally { get; set; } = true;
+            public bool WrapCursorHorizontally { get; set; } = false;
             public bool KeyRepeat { get; set; } = true;
             public int PageJumpAmount { get; set; } = 4;
             public bool RestoreChannelState { get; set; } = true;

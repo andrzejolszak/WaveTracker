@@ -185,7 +185,7 @@ namespace WaveTracker.UI {
                 ClearHistory();
             }
             // responsive height
-            int bottomMargin = 8;
+            int bottomMargin = 100;
             if (channelScrollbar.IsVisible) {
                 height = App.WindowHeight - y - bottomMargin - channelScrollbar.height;
             }
@@ -194,7 +194,7 @@ namespace WaveTracker.UI {
             }
 
             // responsive width
-            int rightMargin = 156;
+            int rightMargin = 160;
             width = App.WindowWidth - x - rightMargin - 1;
             #region change octave
             if (App.Shortcuts["General\\Decrease octave"].IsPressedRepeat) {

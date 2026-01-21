@@ -26,6 +26,8 @@ namespace WaveTracker.UI {
         }
 
         public void Update() {
+            this.x = App.WindowWidth - 155;
+
             if (Input.focus == null) {
                 currentWaveID = -1;
             }

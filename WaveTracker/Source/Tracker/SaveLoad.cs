@@ -643,19 +643,13 @@ namespace WaveTracker {
                 Thread t = new Thread(() => {
                     Input.DialogStarted();
                     Input.CancelClick();
-                    // OpenFileDialog openFileDialog = new OpenFileDialog();
-                    // openFileDialog.InitialDirectory = ThemeFolderPath;
-                    // openFileDialog.CheckPathExists = true;
-                    // openFileDialog.Filter = "WaveTracker Theme (*.wttheme)|*.wttheme";
-                    // openFileDialog.Multiselect = false;
-                    // openFileDialog.Title = "Open";
-                    // openFileDialog.ValidateNames = true;
 
-                    // if (openFileDialog.ShowDialog() == DialogResult.OK) {
-                    //     ret = openFileDialog.FileName;
-                    //     didIt = true;
-                    // }
+                    NfdStatus status = Nfd.OpenDialog(out string themePath, themeDialogFilters, SaveLoad.ThemeFolderPath);
 
+                    if (status == NfdStatus.Ok) {
+                        ret = themePath;
+                        didIt = true;
+                    }
                 });
 
                 if (OperatingSystem.IsWindows())
@@ -665,7 +659,6 @@ namespace WaveTracker {
                 t.Start();
                 t.Join();
                 filepath = ret;
-
             }
             return didIt;
         }

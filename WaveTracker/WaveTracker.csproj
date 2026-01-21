@@ -61,7 +61,6 @@
     <PackageReference Include="NCalcSync" Version="5.2.10" />
     <PackageReference Include="protobuf-net" Version="3.2.30" />
     <PackageReference Include="TextCopy" Version="6.2.1" />
-    <PackageReference Include="System.Windows.Extensions" Version="8.0.0" Condition=" '$(OS)' == 'Windows_NT' " />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WaveTracker.Midi\WaveTracker.Midi.csproj" />

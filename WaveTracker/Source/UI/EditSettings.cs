@@ -26,6 +26,8 @@ namespace WaveTracker.UI {
         }
 
         public void Update() {
+            this.y = App.WindowHeight - 95;
+
             if (App.Shortcuts["General\\Increase step"].IsPressedDown) {
                 App.PatternEditor.InputStep = Math.Clamp(App.PatternEditor.InputStep + 1, 0, 256);
             }

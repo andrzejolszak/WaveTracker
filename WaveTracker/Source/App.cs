@@ -247,18 +247,18 @@ namespace WaveTracker {
             SDL_MaximizeWindow(Window.Handle);
 
             CurrentModule = new WTModule();
-            WaveBank = new WaveBank(510, 18 + MENUSTRIP_HEIGHT);
+            WaveBank = new WaveBank(697, 18 + MENUSTRIP_HEIGHT);
             ChannelManager.Initialize(WTModule.MAX_CHANNEL_COUNT);
-            PatternEditor = new PatternEditor(0, 184 + MENUSTRIP_HEIGHT);
+            PatternEditor = new PatternEditor(0, 95 + MENUSTRIP_HEIGHT);
             InstrumentBank = new InstrumentBank(790, 152 + MENUSTRIP_HEIGHT);
             InstrumentEditor = new InstrumentEditor();
             Visualizer = new Visualizer();
             Dialogs.Initialize();
-            EditSettings = new EditSettings(312, 18 + MENUSTRIP_HEIGHT);
+            EditSettings = new EditSettings(312, 395 + MENUSTRIP_HEIGHT);
             Toolbar = new Toolbar(2, 0 + MENUSTRIP_HEIGHT);
             WaveEditor = new WaveEditor();
-            FramesPanel = new FramesPanel(2, 106 + MENUSTRIP_HEIGHT, 504, 42);
-            ModulePanel = new ModulePanel(2, 18 + MENUSTRIP_HEIGHT);
+            FramesPanel = new FramesPanel(2, 18 + MENUSTRIP_HEIGHT, 604, 42);
+            ModulePanel = new ModulePanel(2, 395 + MENUSTRIP_HEIGHT);
             AudioEngine.Initialize();
 
             IsFixedTimeStep = false;

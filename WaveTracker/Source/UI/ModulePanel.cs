@@ -29,6 +29,8 @@ namespace WaveTracker.UI {
         }
 
         public void Update() {
+            this.y = App.WindowHeight - 95;
+
             if (InFocus) {
                 title.Text = App.CurrentModule.Title;
                 title.Update();
