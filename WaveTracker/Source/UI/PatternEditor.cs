@@ -196,7 +196,7 @@ namespace WaveTracker.UI {
             // responsive width
             int rightMargin = 160;
             width = App.WindowWidth - x - rightMargin - 1;
-            #region change octave
+            // change octave
             if (App.Shortcuts["General\\Decrease octave"].IsPressedRepeat) {
                 CurrentOctave--;
                 PianoInput.ClearAllNotes();
@@ -212,7 +212,7 @@ namespace WaveTracker.UI {
                 }
             }
             CurrentOctave = Math.Clamp(CurrentOctave, 0, 9);
-            #endregion
+            
 
             if (Input.focus == null && !App.VisualizerMode) {
                 FirstVisibleChannel -= Input.MouseScrollWheel(KeyModifier.Alt);
@@ -252,7 +252,7 @@ namespace WaveTracker.UI {
             lastSelection.Set(App.CurrentSong, selection.min, selection.max);
             lastSelection.IsActive = selection.IsActive;
 
-            #region solo/mute channels function keys
+            // solo/mute channels function keys
             if (App.Shortcuts["General\\Toggle channel"].IsPressedDown) {
                 ChannelManager.ToggleChannel(cursorPosition.Channel);
             }
@@ -265,13 +265,13 @@ namespace WaveTracker.UI {
                     ChannelManager.SoloChannel(cursorPosition.Channel);
                 }
             }
-            #endregion
+            
 
             //////////////////////////////
             //        NAVIGATION        //
             //////////////////////////////
 
-            #region home/end navigation
+            // home/end navigation
             // On home key press
             if (Input.GetKeyRepeat(App.Shortcuts["Pattern\\Jump to top of frame"].Key, KeyModifier.None)) {
                 GoToTopOfFrame();
@@ -280,8 +280,8 @@ namespace WaveTracker.UI {
             if (Input.GetKeyRepeat(App.Shortcuts["Pattern\\Jump to bottom of frame"].Key, KeyModifier.None)) {
                 GoToBottomOfFrame();
             }
-            #endregion
-            #region moving cursor with arrow keys
+            
+            // moving cursor with arrow keys
             // On arrow keys
             if (Input.GetKeyRepeat(Keys.Left, KeyModifier.None)) {
                 CancelSelection();
@@ -319,8 +319,8 @@ namespace WaveTracker.UI {
                 CancelSelection();
                 MoveToRow(cursorPosition.Row - (App.Settings.PatternEditor.IgnoreStepWhenMoving ? 1 : InputStep));
             }
-            #endregion
-            #region navigate with mouse
+            
+            // navigate with mouse
             if (ClickedDown) {
                 CancelSelection();
             }
@@ -338,8 +338,8 @@ namespace WaveTracker.UI {
                 MoveToRow(cursorPosition.Row + App.Settings.PatternEditor.PageJumpAmount);
             }
 
-            #endregion
-            #region selection with arrow keys
+            
+            // selection with arrow keys
             if (Input.GetKeyRepeat(Keys.Left, KeyModifier.Shift)) {
                 if (!SelectionIsActive) {
                     SetSelectionStart(cursorPosition);
@@ -438,8 +438,8 @@ namespace WaveTracker.UI {
                 GoToBottomOfFrame();
                 SetSelectionEnd(cursorPosition);
             }
-            #endregion
-            #region selection with mouse
+            
+            // selection with mouse
             if (Input.GetClick(KeyModifier.None) && Input.MouseIsDragging && GlobalPointIsInBounds(Input.LastClickLocation) && MouseX < App.WindowWidth - 12 && MouseY < App.WindowHeight - 12) {
                 if (!SelectionIsActive) {
                     SetSelectionStart(GetCursorPositionFromPoint(LastClickPos.X, LastClickPos.Y));
@@ -475,28 +475,28 @@ namespace WaveTracker.UI {
                 selectionEnd.Row = CurrentPattern.GetModifiedLength() - 1;
                 selectionEnd.Column = App.CurrentSong.GetLastCursorColumnOfChannel(selectionEnd.Channel);
             }
-            #endregion
-            #region selection with CTRL-A and ESC
+            
+            // selection with CTRL-A and ESC
             if (App.Shortcuts["Edit\\Select all"].IsPressedRepeat) {
                 SelectAll();
             }
             if (App.Shortcuts["Edit\\Deselect"].IsPressedRepeat) {
                 CancelSelection();
             }
-            #endregion
+            
 
             if (!SelectionIsActive) {
                 selectionStart = selectionEnd = cursorPosition;
             }
             selection.Set(App.CurrentSong, selectionStart, selectionEnd);
 
-            #region copying selection
+            // copying selection
             if (SelectionIsActive) {
                 if (App.Shortcuts["Edit\\Copy"].IsPressedDown) {
                     CopyToClipboard();
                 }
             }
-            #endregion
+            
 
             if (App.Shortcuts["General\\Toggle edit mode"].IsPressedRepeat) {
                 ToggleEditMode();
@@ -508,7 +508,7 @@ namespace WaveTracker.UI {
             //           EDITING           //
             /////////////////////////////////
 
-            #region field input
+            // field input
             if (cursorPosition.Column == CursorColumnType.Note) {
                 // input note column
                 foreach (string pianoKeyShortcut in KeyInputs_Piano.Keys) {
@@ -719,8 +719,8 @@ namespace WaveTracker.UI {
                     }
                 }
             }
-            #endregion
-            #region scroll field modifiers
+            
+            // scroll field modifiers
             if (IsHovered) {
                 if (!SelectionIsActive) {
                     // scrolling field modifiers
@@ -842,8 +842,8 @@ namespace WaveTracker.UI {
                     }
                 }
             }
-            #endregion
-            #region backspace + insert + delete
+            
+            // backspace + insert + delete
 
             if (KeyPress(App.Shortcuts["Edit\\Backspace"])) {
                 Backspace();
@@ -858,8 +858,8 @@ namespace WaveTracker.UI {
                 Delete(true);
             }
 
-            #endregion
-            #region value increment and transposing
+            
+            // value increment and transposing
             if (App.Shortcuts["Pattern\\Transpose: note down"].IsPressedRepeat) {
                 DecreaseNote();
             }
@@ -976,8 +976,8 @@ namespace WaveTracker.UI {
                     AddToUndoHistory();
                 }
             }
-            #endregion
-            #region interpolate and reverse
+            
+            // interpolate and reverse
             if (SelectionIsActive) {
                 if (App.Shortcuts["Pattern\\Interpolate"].IsPressedRepeat) {
                     InterpolateSelection();
@@ -986,8 +986,8 @@ namespace WaveTracker.UI {
                     ReverseSelection();
                 }
             }
-            #endregion
-            #region copy/paste/cut
+            
+            // copy/paste/cut
             if (SelectionIsActive) {
                 if (App.Shortcuts["Edit\\Cut"].IsPressedRepeat) {
                     Cut();
@@ -1001,8 +1001,8 @@ namespace WaveTracker.UI {
                     PasteAndMix();
                 }
             }
-            #endregion
-            #region undo/redo
+            
+            // undo/redo
             if (App.Shortcuts["Edit\\Undo"].IsPressedRepeat) {
                 Undo();
             }
@@ -1010,23 +1010,23 @@ namespace WaveTracker.UI {
             if (App.Shortcuts["Edit\\Redo"].IsPressedRepeat) {
                 Redo();
             }
-            #endregion
-            #region alt+s replace instrument
+            
+            // alt+s replace instrument
             if (SelectionIsActive) {
                 if (App.Shortcuts["Pattern\\Replace instrument"].IsPressedDown) {
                     ReplaceInstrument();
                 }
             }
-            #endregion
-            #region alt+h humanize
+            
+            // alt+h humanize
             if (App.Shortcuts["Pattern\\Humanize volumes"].IsPressedDown) {
                 Humanize();
             }
-            #endregion
+            
 
         }
 
-        #region Draw Methods
+        // Draw Methods
         public void Draw() {
             playbackFrame = Playback.position.Frame;
             playbackRow = Playback.position.Row;
@@ -1361,9 +1361,9 @@ namespace WaveTracker.UI {
                 }
             }
         }
-        #endregion
+        
 
-        #region move cursor methods
+        // move cursor methods
 
         /// <summary>
         /// Resets the cursor position and view to the beginning of the song, and clears undo history
@@ -1467,9 +1467,9 @@ namespace WaveTracker.UI {
         private void MoveToChannel(int channel) {
             cursorPosition.MoveToChannel(channel, App.CurrentSong);
         }
-        #endregion
+        
 
-        #region selectionMethods
+        // selectionMethods
 
         /// <summary>
         /// Sets the selection start position
@@ -1531,7 +1531,7 @@ namespace WaveTracker.UI {
             }
         }
 
-        #endregion
+        
 
         public void ToggleEditMode() {
             EditMode = !EditMode;
@@ -2142,7 +2142,7 @@ namespace WaveTracker.UI {
             }
         }
 
-        #region frame methods
+        // frame methods
 
         /// <summary>
         /// Moves to the next frame in the song
@@ -2238,7 +2238,7 @@ namespace WaveTracker.UI {
             CurrentFrame.PatternIndex--;
             AddToUndoHistory();
         }
-        #endregion
+        
 
         /// <summary>
         /// Snaps the cursor position to the playback row.
@@ -2544,7 +2544,7 @@ namespace WaveTracker.UI {
             };
         }
 
-        #region Key Input Dictionaries
+        // Key Input Dictionaries
         private readonly Dictionary<string, int> KeyInputs_Piano = new Dictionary<string, int>() {
             { "Piano\\Note off", WTPattern.EVENT_NOTE_CUT },
             { "Piano\\Note release", WTPattern.EVENT_NOTE_RELEASE },
@@ -2637,6 +2637,6 @@ namespace WaveTracker.UI {
             {Keys.D9, 9},
             {Keys.NumPad9, 9},
         };
-        #endregion
+        
     }
 }

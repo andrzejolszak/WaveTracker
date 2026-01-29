@@ -133,7 +133,7 @@ namespace WaveTracker.UI {
                 }
 
                 // input loop/release
-                #region loop/release
+                // loop/release
                 if (Input.GetClickDown(KeyModifier.None) && currentEnvelope.IsActive) {
                     if (MouseIsInReleaseRibbon && MouseEnvelopeX >= 1 && MouseEnvelopeX < currentEnvelope.Length) {
                         currentEnvelope.ReleaseIndex = currentEnvelope.ReleaseIndex != MouseEnvelopeX - 1 ? (byte)(MouseEnvelopeX - 1) : (byte)Envelope.EMPTY_LOOP_RELEASE_INDEX;
@@ -144,7 +144,7 @@ namespace WaveTracker.UI {
                         App.CurrentModule.SetDirty();
                     }
                 }
-                #endregion
+                
             }
         }
 
@@ -385,7 +385,7 @@ namespace WaveTracker.UI {
                         s += "(" + CanvasMouseBlockClamped().X + ", " + CanvasMouseBlockClamped().Y + ")";
                     }
                     Write(s, 90, 226, UIColors.label);
-                    #region draw loop/release
+                    // draw loop/release
                     // draw release
                     if (MouseIsInReleaseRibbon && MouseEnvelopeX >= 1 && MouseEnvelopeX < currentEnvelope.Length && currentEnvelope.IsActive) {
                         DrawFlagSprite(GetXPositionOfColumn(MouseEnvelopeX) - 1, 11, new Rectangle(400, 107, 40, 9));
@@ -412,7 +412,7 @@ namespace WaveTracker.UI {
                         }
                         DrawRect(GetXPositionOfColumn(currentEnvelope.LoopIndex) - 1, 10, 1, height - 11, new Color(99, 171, 63));
                     }
-                    #endregion
+                    
                     switch (currentEnvelope.Type) {
                         case Envelope.EnvelopeType.Volume:
                         case Envelope.EnvelopeType.WaveBlend:

@@ -310,7 +310,7 @@ namespace WaveTracker.UI {
             }
         }
 
-        #region Page definitions
+        // Page definitions
         public class Page : Clickable {
             protected Dictionary<string, ConfigurationOption> options;
             protected int ypos = 2;
@@ -509,10 +509,10 @@ namespace WaveTracker.UI {
                 colorList.SaveDictionaryInto(theme.Colors);
             }
         }
-        #endregion
+        
     }
 
-    #region Option definitions
+    // Option definitions
     public class ConfigurationOption : Clickable {
         public string Name { get; private set; }
         public string Description { get; private set; }
@@ -779,6 +779,6 @@ namespace WaveTracker.UI {
         }
 
     }
-    #endregion
+    
 
 }

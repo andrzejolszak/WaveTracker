@@ -118,7 +118,7 @@ namespace WaveTracker.UI {
 
         public void DrawVolumeMeters(int px, int py, int width, int height) {
             Color grey = new Color(163, 167, 194);
-            #region draw L+R letters
+            // draw L+R letters
             DrawRect(px - 7, py, 1, 4, grey);
             DrawRect(px - 6, py + 3, 2, 1, grey);
 
@@ -127,7 +127,7 @@ namespace WaveTracker.UI {
             DrawRect(px - 6, py + height + 3, 1, 1, grey);
             DrawRect(px - 5, py + height + 2, 1, 1, grey);
             DrawRect(px - 5, py + height + 4, 1, 1, grey);
-            #endregion
+            
 
             for (int i = 0; i < Audio.AudioEngine.CurrentBuffer.GetLength(1); i++) {
                 float l = Math.Abs(Audio.AudioEngine.CurrentBuffer[0, i]);
