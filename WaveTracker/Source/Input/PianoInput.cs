@@ -155,7 +155,7 @@ namespace WaveTracker {
                 if (!Playback.IsPlaying) {
                     AudioEngine.ResetTicks();
                 }
-                ChannelManager.PreviewChannel.SetMacro(App.InstrumentBank.CurrentInstrumentIndex);
+                ChannelManager.PreviewChannel.SetMacro(App.InstrumentEditor.IsOpen ? App.InstrumentEditor.CurrentInstrumentID : App.InstrumentBank.CurrentInstrumentIndex);
                 ChannelManager.PreviewChannel.SetVolume(CurrentVelocity);
                 ChannelManager.PreviewChannel.TriggerNote(CurrentNote);
 

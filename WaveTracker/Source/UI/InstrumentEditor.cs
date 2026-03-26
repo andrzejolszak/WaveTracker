@@ -7,11 +7,11 @@ namespace WaveTracker.UI {
     public class InstrumentEditor : Window {
         public bool IsOpen { get { return WindowIsOpen; } }
 
-        private int currentInstrumentID;
+        public int CurrentInstrumentID { get; private set; }
 
-        private Instrument CurrentInstrument {
+        public Instrument CurrentInstrument {
             get {
-                return App.CurrentModule.Instruments[currentInstrumentID];
+                return App.CurrentModule.Instruments[CurrentInstrumentID];
             }
         }
 
@@ -67,7 +67,7 @@ namespace WaveTracker.UI {
 
         public void Open(Instrument instrumentToEdit, int instrumentIndex) {
             Open();
-            currentInstrumentID = instrumentIndex;
+            CurrentInstrumentID = instrumentIndex;
             tabGroup = new TabGroup(8, 15, this);
             if (instrumentToEdit is SampleInstrument instrument) {
                 tabGroup.AddTab("Sample", false);
@@ -92,12 +92,12 @@ namespace WaveTracker.UI {
 
         public new void Draw() {
             if (WindowIsOpen) {
-                name = "Edit Instrument " + currentInstrumentID.ToString("D2");
+                name = "Edit Instrument " + CurrentInstrumentID.ToString("D2");
 
                 // draw window
                 base.Draw();
 
-                Write(" (" + App.CurrentModule.Instruments[currentInstrumentID].name + ")", 6 + Helpers.GetWidthOfText(name), 1, UIColors.labelLight);
+                Write(" (" + App.CurrentModule.Instruments[CurrentInstrumentID].name + ")", 6 + Helpers.GetWidthOfText(name), 1, UIColors.labelLight);
 
                 DrawRoundedRect(8, 28, width - 16, 270, Color.White);
                 tabGroup.Draw();

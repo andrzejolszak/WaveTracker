@@ -32,8 +32,8 @@ namespace WaveTracker.UI {
         /// Positions the window in the center of the screen
         /// </summary>
         public void PositionInCenterOfScreen() {
-            x = (App.WindowWidth - width) / 2;
-            y = (App.WindowHeight - height) / 2;
+            x = (App.WindowWidth - width) / 5;
+            y = (App.WindowHeight - height) / 5;
         }
 
         protected void DoDragging() {
