@@ -103,31 +103,9 @@ namespace WaveTracker.UI {
             delete = new SpriteButton(buttonsX, buttonsY, 15, 15, 360, 0, this);
             delete.SetTooltip("Delete", "Delete the selected audio");
             buttonsX += 18;
-            crop = new SpriteButton(buttonsX, buttonsY, 15, 15, 360, 0, this);
+            crop = new SpriteButton(buttonsX, buttonsY, 15, 15, 375, 0, this);
             crop.SetTooltip("Crop", "Crop to selected audio");
             buttonsX += 18;
-            zoomIn = new SpriteButton(buttonsX, buttonsY, 15, 15, 465, 0, this);
-            zoomIn.SetTooltip("Zoom in (horizontal)", "Zoom into the audio view horizontally");
-            buttonsX += 15;
-            zoomOut = new SpriteButton(buttonsX, buttonsY, 15, 15, 480, 0, this);
-            zoomOut.SetTooltip("Zoom out (horizontal)", "Zoom out of the audio view horizontally");
-            buttonsX += 15;
-            zoomInVertical = new SpriteButton(buttonsX, buttonsY, 15, 15, 495, 0, this);
-            zoomInVertical.SetTooltip("Zoom in (vertical)", "Zoom into the audio view vertically");
-            buttonsX += 15;
-            zoomOutVertical = new SpriteButton(buttonsX, buttonsY, 15, 15, 510, 0, this);
-            zoomOutVertical.SetTooltip("Zoom out (vertical)", "Zoom out of the audio view vertically");
-            buttonsX += 18;
-            fadeIn = new SpriteButton(buttonsX, buttonsY, 15, 15, 525, 0, this);
-            fadeIn.SetTooltip("Fade in", "Apply a fade-in on the selected audio");
-            buttonsX += 15;
-            fadeOut = new SpriteButton(buttonsX, buttonsY, 15, 15, 540, 0, this);
-            fadeOut.SetTooltip("Fade out", "Apply a fade-out on the selected audio");
-            buttonsX += 15;
-            reverse = new SpriteButton(buttonsX, buttonsY, 15, 15, 555, 0, this);
-            reverse.SetTooltip("Reverse", "Reverse the selected audio");
-            buttonsX += 18;
-
             tools = new DropdownButton("Tools...", buttonsX, buttonsY, 50, this);
             tools.SetMenuItems([
                 new DropdownButton.Option("Delete", () => SelectionIsActive),
@@ -142,6 +120,32 @@ namespace WaveTracker.UI {
                 new DropdownButton.Option("Amplify...", () => Sample.Length > 0),
                 new DropdownButton.Option("Bitcrush...", () => Sample.Length > 0)
                 ]);
+
+            buttonsX = 351;
+            buttonsY += 18;
+            zoomIn = new SpriteButton(buttonsX, buttonsY, 15, 15, 465, 0, this);
+            zoomIn.SetTooltip("Zoom in (horizontal)", "Zoom into the audio view horizontally");
+            buttonsX += 15;
+            zoomOut = new SpriteButton(buttonsX, buttonsY, 15, 15, 480, 0, this);
+            zoomOut.SetTooltip("Zoom out (horizontal)", "Zoom out of the audio view horizontally");
+            buttonsX += 15;
+            zoomInVertical = new SpriteButton(buttonsX, buttonsY, 15, 15, 495, 0, this);
+            zoomInVertical.SetTooltip("Zoom in (vertical)", "Zoom into the audio view vertically");
+            buttonsX += 15;
+            zoomOutVertical = new SpriteButton(buttonsX, buttonsY, 15, 15, 510, 0, this);
+            zoomOutVertical.SetTooltip("Zoom out (vertical)", "Zoom out of the audio view vertically");
+
+            buttonsX = 351;
+            buttonsY += 18;
+            fadeIn = new SpriteButton(buttonsX, buttonsY, 15, 15, 525, 0, this);
+            fadeIn.SetTooltip("Fade in", "Apply a fade-in on the selected audio");
+            buttonsX += 15;
+            fadeOut = new SpriteButton(buttonsX, buttonsY, 15, 15, 540, 0, this);
+            fadeOut.SetTooltip("Fade out", "Apply a fade-out on the selected audio");
+            buttonsX += 15;
+            reverse = new SpriteButton(buttonsX, buttonsY, 15, 15, 555, 0, this);
+            reverse.SetTooltip("Reverse", "Reverse the selected audio");
+            buttonsX += 18;
 
             showInVisualizer = new CheckboxLabeled("Show in visualizer", 480, 245, 88, this);
             showInVisualizer.ShowCheckboxOnRight = true;
