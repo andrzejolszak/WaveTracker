@@ -246,7 +246,9 @@ namespace WaveTracker.Audio {
                     waveSyncAmt.patternValue = parameter;
                     break;
                 case 'X':
-                    downsampleFactor = parameter;
+                    // Normalized to x2 oversampling (base recommended value).
+                    // Compensates downsample effectiveness based on current oversampling.
+                    downsampleFactor = parameter * App.Settings.Audio.Oversampling / 2;
                     break;
                 case 'H':
                     SetFilter(Helpers.Map(parameter / 16, 0, 16, 1, 0.3f), Helpers.Map(parameter % 16, 0, 16, 1, 8));
