@@ -170,8 +170,8 @@ namespace WaveTracker.Tracker {
                     int length = frame.GetLength();
                     for (int row = 0; row < length; ++row) {
                         for (int channel = 0; channel < ChannelCount; channel++) {
-                            if (song[frame.PatternIndex][row, channel, CellType.Instrument] != WTPattern.EVENT_EMPTY) {
-                                unusedInstruments.Remove(song[frame.PatternIndex][row, channel, CellType.Instrument]);
+                            if (song.Patterns[frame.PatternIndex][row, channel, CellType.Instrument] != WTPattern.EVENT_EMPTY) {
+                                unusedInstruments.Remove(song.Patterns[frame.PatternIndex][row, channel, CellType.Instrument]);
                             }
                         }
                     }
@@ -201,8 +201,8 @@ namespace WaveTracker.Tracker {
                     for (int row = 0; row < length; ++row) {
                         for (int channel = 0; channel < ChannelCount; channel++) {
                             for (int effect = 0; effect < 4; ++effect) {
-                                if (song[frame.PatternIndex][row, channel, CellType.Effect1 + effect * 2] == 'V') {
-                                    unusedWaves.Remove(song[frame.PatternIndex][row, channel, CellType.Effect1Parameter + effect * 2]);
+                                if (song.Patterns[frame.PatternIndex][row, channel, CellType.Effect1 + effect * 2] == 'V') {
+                                    unusedWaves.Remove(song.Patterns[frame.PatternIndex][row, channel, CellType.Effect1Parameter + effect * 2]);
                                 }
                             }
                         }
