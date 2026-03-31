@@ -53,6 +53,7 @@ namespace WaveTracker.UI {
         private Dropdown resamplingMode;
         private Dropdown loopMode;
         private NumberBox loopPoint;
+        private NumberBox loopLength;
         private SampleBrowser browser;
         private CheckboxLabeled showInVisualizer;
         private int lastMouseHoverSample;
@@ -89,8 +90,11 @@ namespace WaveTracker.UI {
             loopPoint = new NumberBox("Loop position (samples)", 154, 203, 186, 83, this);
             loopPoint.SetTooltip("", "Set the position in audio samples where the sound loops back to");
 
-            loopMode = new Dropdown(282, 188, this, false);
-            loopMode.SetMenuItems(["One-shot", "Forward", "Ping-pong"]);
+            loopLength = new NumberBox("Loop length (samples)", 154, 218, 186, 83, this);
+            loopLength.SetTooltip("", "Set the length of the loop. Zero for until sample end.");
+
+            loopMode = new Dropdown(232, 188, this, false);
+            loopMode.SetMenuItems(["One-shot", "Forward", "Ping-pong", "Forward Loop-only", "Ping-pong Loop-only"]);
 
             int buttonsX = 351;
             int buttonsY = 188;
@@ -292,6 +296,15 @@ namespace WaveTracker.UI {
                 loopPoint.Update();
                 if (loopPoint.ValueWasChangedInternally) {
                     Sample.loopPoint = loopPoint.Value;
+                    AddToUndoHistory();
+                }
+
+                loopLength.enabled = Sample.loopType == Sample.LoopType.ForwardLoopOnly || Sample.loopType == Sample.LoopType.PingPongLoopOnly;
+                loopLength.SetValueLimits(0, Math.Max(0, Sample.Length - loopPoint.Value));
+                loopLength.Value = Sample.loopLength;
+                loopLength.Update();
+                if (loopLength.ValueWasChangedInternally) {
+                    Sample.loopLength = loopLength.Value;
                     AddToUndoHistory();
                 }
 
@@ -631,6 +644,9 @@ namespace WaveTracker.UI {
             if (Sample.loopType != Sample.LoopType.OneShot) {
                 loopPoint.Draw();
             }
+            if (Sample.loopType == Sample.LoopType.ForwardLoopOnly || Sample.loopType == Sample.LoopType.PingPongLoopOnly) {
+                loopLength.Draw();
+            }
             baseKey.Draw();
             fineTune.Draw();
             resamplingMode.Draw();
@@ -667,8 +683,13 @@ namespace WaveTracker.UI {
                 if (SelectionIsActive) {
                     DrawRect(x + selectionMinX, y, selectionMaxX - selectionMinX, height, Helpers.Alpha(UIColors.selection, 128));
                 }
+         
                 int loopPosition = GetXPositionOfSample(Sample.loopPoint, width);
-                if (Sample.loopType != Sample.LoopType.OneShot) {
+                if (Sample.loopType == Sample.LoopType.ForwardLoopOnly || Sample.loopType == Sample.LoopType.PingPongLoopOnly) {
+                    int loopEndPosition = GetXPositionOfSample(Sample.loopPoint + Sample.loopLength, width);
+                    DrawRect(x + loopPosition, y, loopEndPosition - loopPosition, height, Helpers.Alpha(Color.Yellow, 50));
+                }
+                else if (Sample.loopType != Sample.LoopType.OneShot) {
                     DrawRect(x + loopPosition, y, width - loopPosition, height, Helpers.Alpha(Color.Yellow, 50));
                 }
 
@@ -813,6 +834,7 @@ namespace WaveTracker.UI {
             private short[] channelRight;
             private Sample.LoopType loopType;
             private int loopPoint;
+            private int loopLength;
 
             public SampleEditorState(Sample sample) {
                 channelLeft = new short[sample.sampleDataL.Length];
@@ -820,6 +842,7 @@ namespace WaveTracker.UI {
                 channelRight = new short[sample.sampleDataR.Length];
                 Array.Copy(sample.sampleDataR, channelRight, sample.sampleDataR.Length);
                 loopPoint = sample.loopPoint;
+                loopLength = sample.loopLength;
                 loopType = sample.loopType;
             }
 
@@ -829,6 +852,7 @@ namespace WaveTracker.UI {
                 sample.sampleDataR = new short[channelRight.Length];
                 Array.Copy(channelRight, sample.sampleDataR, channelRight.Length);
                 sample.loopPoint = loopPoint;
+                sample.loopLength = loopLength;
                 sample.loopType = loopType;
             }
         }

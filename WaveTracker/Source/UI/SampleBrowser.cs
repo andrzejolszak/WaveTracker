@@ -293,6 +293,7 @@ namespace WaveTracker.UI {
             sample.SetBaseKey(App.Settings.SamplesWaves.DefaultSampleBaseKey);
             sample.SetDetune(0);
             sample.loopPoint = 0;
+            sample.loopLength = 0;
             sample.loopType = loopPreview.Value ? Sample.LoopType.Forward : Sample.LoopType.OneShot;
             if (successfulRead) {
                 sample.name = Path.GetFileNameWithoutExtension(path);

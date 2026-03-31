@@ -79,7 +79,7 @@ namespace WaveTracker.UI {
             bDown.enabled = enabled && Value > min;
             if (enabled && InFocus) {
                 int valueBeforeUpdate = Value;
-                if (InputField.DoubleClicked) {
+                if (InputField.Clicked) {
                     Input.CancelClick();
                     InputField.Open(Value + "", selectAll: true);
                 }
@@ -100,8 +100,9 @@ namespace WaveTracker.UI {
                                 valueSaved = Value;
                             }
 
-                            if (Input.GetClick(KeyModifier.None) && !ValueWasChangedInternally) {
-                                Value = valueSaved - (MouseY - LastClickPos.Y) / 2;
+                            if (Input.GetClick(KeyModifier._Any) && !ValueWasChangedInternally) {
+                                int factor = Math.Max(1, (this.max - this.min) / (Input.GetClick(KeyModifier.Shift) ? 100 : 1000));
+                                Value = valueSaved - (MouseY - LastClickPos.Y) * factor;
                                 App.MouseCursor = Microsoft.Xna.Framework.Input.MouseCursor.SizeNS;
                             }
                         }

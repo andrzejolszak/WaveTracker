@@ -12,7 +12,7 @@ namespace WaveTracker.Tracker {
     [Serializable]
     [ProtoContract(SkipConstructor = true)]
     public class Sample {
-        public enum LoopType { OneShot, Forward, PingPong }
+        public enum LoopType { OneShot, Forward, PingPong, ForwardLoopOnly, PingPongLoopOnly }
 
         [ProtoMember(1)]
         private int resampleInt;
@@ -41,8 +41,12 @@ namespace WaveTracker.Tracker {
         [ProtoMember(11)]
         public string name;
 
+        [ProtoMember(12)]
+        public int loopLength;
+
         public Sample() {
             loopPoint = 0;
+            loopLength = 0;
 
             useInVisualization = false;
             sampleDataL = [];
@@ -227,6 +231,12 @@ namespace WaveTracker.Tracker {
             sampleDataR = newSampleDataR;
             if (loopPoint >= Length) {
                 loopPoint = 0;
+                loopLength = 0;
+                loopType = LoopType.OneShot;
+            }
+
+            if (loopPoint + loopLength >= Length) {
+                loopLength = 0;
                 loopType = LoopType.OneShot;
             }
         }
@@ -290,8 +300,15 @@ namespace WaveTracker.Tracker {
             x += startPercentage * Length;
             long l = Length;
             long p = loopPoint;
-            if (loopType == LoopType.OneShot || x <= l) {
+            long lp = loopLength == 0 ? l : p + loopLength;
+            if (loopType == LoopType.OneShot || (x <= l && loopType != LoopType.ForwardLoopOnly && loopType != LoopType.PingPongLoopOnly)) {
                 sampleIndex = x;
+            }
+            else if (loopType == LoopType.Forward) {
+                sampleIndex = (x - p) % (l - p) + p;
+            }
+            else if (loopType == LoopType.ForwardLoopOnly) {
+                sampleIndex = x % (lp - p) + p;
             }
             else if (loopType == LoopType.PingPong) {
                 float b = (x - p) % ((l - p) * 2);
@@ -302,8 +319,14 @@ namespace WaveTracker.Tracker {
                     sampleIndex = l - (b + p - l);
                 }
             }
-            else if (loopType == LoopType.Forward) {
-                sampleIndex = (x - p) % (l - p) + p;
+            else if (loopType == LoopType.PingPongLoopOnly) {
+                float b = x % ((lp - p) * 2);
+                if (b < lp - p) {
+                    sampleIndex = b + p;
+                }
+                else if (b >= lp - p) {
+                    sampleIndex = lp - (b + p - lp);
+                }
             }
 
             currentPlaybackPosition = (int)sampleIndex;
