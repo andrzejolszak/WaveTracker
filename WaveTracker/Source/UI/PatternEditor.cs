@@ -2576,6 +2576,7 @@ namespace WaveTracker.UI {
             {Keys.B, 'B'},
             {Keys.G, 'G'},
             {Keys.S, 'S'},
+            {Keys.T, 'T'},
             {Keys.L, 'L'},
             {Keys.A, 'A'},
             {Keys.W, 'W'},

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using WaveTracker.Tracker;
 
@@ -88,6 +89,7 @@ namespace WaveTracker.Audio {
         private float lastSampleL;
         private float lastSampleR;
         private StereoBiQuadFilter stereoBiQuadFilter; // Hxy command
+        private IRConvolution irConvolution; // Txx command
         private float _waveStretchSmooth;
         public int SampleStartOffset { get; private set; } // Yxx command
 
@@ -112,6 +114,7 @@ namespace WaveTracker.Audio {
         private float targetFilterCutoffFrequency;
         private float _filterCutoffFrequency;
         private int currentInstrumentID;
+        private int irInstrumentId = -1;
 
         private double _noiseTime;
         private float noiseValueC;
@@ -151,6 +154,7 @@ namespace WaveTracker.Audio {
             }
             noiseLength = noiseSample.Length;
             stereoBiQuadFilter = new StereoBiQuadFilter();
+            irConvolution = new IRConvolution();
             Reset();
         }
 
@@ -252,6 +256,9 @@ namespace WaveTracker.Audio {
                     break;
                 case 'H':
                     SetFilter(Helpers.Map(parameter / 16, 0, 16, 1, 0.3f), Helpers.Map(parameter % 16, 0, 16, 1, 8));
+                    break;
+                case 'T':
+                    SetIR(parameter);
                     break;
             }
         }
@@ -384,6 +391,7 @@ namespace WaveTracker.Audio {
             downsampleCounter = 0;
             downsampleFactor = 0;
             SetFilter(1, 1);
+            SetIR(-1);
             SetPanning(0.5f);
         }
 
@@ -393,9 +401,21 @@ namespace WaveTracker.Audio {
             UpdateFilter();
         }
 
+        public void SetIR(int instrumentId) {
+            irInstrumentId = instrumentId;
+            UpdateIR();
+        }
+
         public void UpdateFilter() {
             _filterCutoffFrequency = targetFilterCutoffFrequency * Math.Min(20000, AudioEngine.SampleRate / 2f);
             stereoBiQuadFilter.SetLowpassFilter(AudioEngine.TrueSampleRate, _filterCutoffFrequency, filterResonance);
+        }
+
+        public void UpdateIR() {
+            float[] ir = irInstrumentId < 0 || irInstrumentId >= App.CurrentModule.Instruments.Count ? 
+                new float[0]
+                : (App.CurrentModule.Instruments[irInstrumentId] as SampleInstrument)?.sample.sampleDataL.Select(x => x / (float)short.MaxValue).ToArray() ?? new float[0];
+            irConvolution.SetIR(ir);
         }
 
         public void ResetModulations() {
@@ -782,6 +802,9 @@ namespace WaveTracker.Audio {
                 float l = sampleL * _volumeSmooth * _leftAmp * _fadeMultiplier * freqCut;
                 float r = sampleR * _volumeSmooth * _rightAmp * _fadeMultiplier * freqCut;
                 stereoBiQuadFilter.Transform(l, r, out l, out r);
+
+                irConvolution.Transform(l, r, out l, out r);
+
                 left = l * 0.225f * bassBoost;
                 right = r * 0.225f * bassBoost;
                 if (id >= 0 && IsMuted) {

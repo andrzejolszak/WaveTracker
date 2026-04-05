@@ -100,8 +100,10 @@ namespace WaveTracker.Audio {
             audioCommandChannel.Writer.TryWrite(AudioCommand.SetSampleRate);
             foreach (Channel chan in ChannelManager.Channels) {
                 chan.UpdateFilter();
+                chan.UpdateIR();
             }
             ChannelManager.PreviewChannel.UpdateFilter();
+            ChannelManager.PreviewChannel.UpdateIR();
         }
 
         /// <summary>

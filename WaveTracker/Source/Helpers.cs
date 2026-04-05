@@ -287,6 +287,8 @@ namespace WaveTracker {
                 "Bends the current note down by y semitones at speed x"),
                 'S' => ("Sxx", "Delayed cut", "(ticks)",
                 "Cuts the note after xx ticks have passed."),
+                'T' => ("Txx", "IR convolution", "(index)",
+                "Applies the IR response defined by the wave instrument xx."),
                 'V' => ("Vxx", "Set wave", "(wave #)",
                 "Sets the channel's timbre to wave xx in the wave bank"),
                 'X' => ("Xxx", "Downsample", "(intensity)",
