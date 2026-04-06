@@ -1263,6 +1263,12 @@ namespace WaveTracker.UI {
                     WriteMonospaced("···", x + 48 + 18 * i, y, emptyColor, 4);
                 }
                 else {
+
+                    Channel chObj = ChannelManager.Channels[channel];
+                    if (chObj.Errors.TryGetValue((frame, row), out string err)) {
+                        DrawRect(x + 47 + 18 * i, y, 15, ROW_HEIGHT, App.Settings.Colors.Theme["Instrument (sample)"]);
+                    }
+
                     Write((char)thisEffectType + "", x + 47 + 18 * i, y, App.Settings.Colors.Theme["Effect"]);
                     if (Helpers.IsEffectHex((char)thisEffectType)) {
                         WriteMonospaced(thisEffectParameter.ToString("X2"), x + 52 + 18 * i, y, App.Settings.Colors.Theme["Effect parameter"], 4);

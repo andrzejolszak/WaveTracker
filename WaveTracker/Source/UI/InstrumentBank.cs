@@ -10,6 +10,9 @@ namespace WaveTracker.UI {
         private InputField InputField { get; set; }
 
         public int CurrentInstrumentIndex { get; set; }
+
+        public DateTime SelectionChangeTimestamp { get; set; } = DateTime.UtcNow;
+
         public Instrument GetCurrentInstrument {
             get {
                 return App.CurrentModule.Instruments[CurrentInstrumentIndex];
@@ -131,13 +134,24 @@ namespace WaveTracker.UI {
                             ContextMenu.Open(CreateInstrumentMenu());
                         }
                         // click on item
+                        int beforeClick = CurrentInstrumentIndex;
                         if (Input.GetClickDown(KeyModifier._Any) || Input.GetRightClickDown(KeyModifier._Any)) {
-                            CurrentInstrumentIndex = Math.Clamp((MouseY - 28) / 11 + scrollbar.ScrollValue, 0, App.CurrentModule.Instruments.Count - 1);
+                            int ch = Math.Clamp((MouseY - 28) / 11 + scrollbar.ScrollValue, 0, App.CurrentModule.Instruments.Count - 1);
+                            if (CurrentInstrumentIndex != ch) {
+                                CurrentInstrumentIndex = ch;
+                                SelectionChangeTimestamp = DateTime.UtcNow;
+                            }
                         }
                         if (Input.GetDoubleClickDown(KeyModifier._Any)) {
                             int ix = (MouseY - 28) / 11 + scrollbar.ScrollValue;
                             if (ix < App.CurrentModule.Instruments.Count && ix >= 0) {
                                 App.InstrumentEditor.Open(GetCurrentInstrument, CurrentInstrumentIndex);
+                            }
+                        }
+                        else if (Input.GetClickDown(KeyModifier._Any)) {
+                            int instr = Math.Clamp((MouseY - 28) / 11 + scrollbar.ScrollValue, 0, App.CurrentModule.Instruments.Count - 1);
+                            if (beforeClick == instr && (DateTime.UtcNow - SelectionChangeTimestamp).TotalSeconds < 1) {
+                                Rename();
                             }
                         }
                     }

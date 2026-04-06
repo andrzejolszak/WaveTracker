@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -91,6 +92,7 @@ namespace WaveTracker.Audio {
         private StereoBiQuadFilter stereoBiQuadFilter; // Hxy command
         private IRConvolution irConvolution; // Txx command
         private float _waveStretchSmooth;
+        public readonly ConcurrentDictionary<(int Frame, int Row), string> Errors = new ConcurrentDictionary<(int Frame, int Row), string>();
         public int SampleStartOffset { get; private set; } // Yxx command
 
         private int channelVolume; // volume column
@@ -171,16 +173,16 @@ namespace WaveTracker.Audio {
 
         public int SamplePlaybackPosition { get; private set; }
 
-        public void QueueEvent(TickEventType eventType, int val1, int val2, int delay) {
+        public void QueueEvent(TickEventType eventType, int val1, int val2, int val3, int delay, int frame, int row) {
             if (delay < 0) {
-                DoEvent(new TickEvent(eventType, val1, val2, delay));
+                DoEvent(new TickEvent(eventType, val1, val2, val3, delay, frame, row));
             }
             else {
-                tickEvents.Add(new TickEvent(eventType, val1, val2, delay));
+                tickEvents.Add(new TickEvent(eventType, val1, val2, val3, delay, frame, row));
             }
         }
 
-        public void ApplyEffect(char command, int parameter) {
+        public void ApplyEffect(char command, int parameter, int instrumentId, int frame, int row) {
             switch (command) {
                 case '4':
                     if (parameter == 0) {
@@ -258,7 +260,7 @@ namespace WaveTracker.Audio {
                     SetFilter(Helpers.Map(parameter / 16, 0, 16, 1, 0.3f), Helpers.Map(parameter % 16, 0, 16, 1, 8));
                     break;
                 case 'T':
-                    SetIR(parameter);
+                    SetIR(parameter, frame, row, instrumentId);
                     break;
             }
         }
@@ -391,8 +393,9 @@ namespace WaveTracker.Audio {
             downsampleCounter = 0;
             downsampleFactor = 0;
             SetFilter(1, 1);
-            SetIR(-1);
+            SetIR(-1, -1, -1, -1);
             SetPanning(0.5f);
+            this.Errors.Clear();
         }
 
         public void SetFilter(float cutoffValue, float resonance) {
@@ -401,9 +404,14 @@ namespace WaveTracker.Audio {
             UpdateFilter();
         }
 
-        public void SetIR(int instrumentId) {
-            irInstrumentId = instrumentId;
-            UpdateIR();
+        public void SetIR(int irInstrId, int frame, int row, int playbackInstrumentId) {
+            if (irInstrumentId == irInstrId) {
+                // TODO: reset buffers?
+                return;
+            }
+
+            irInstrumentId = irInstrId;
+            UpdateIR(frame, row, playbackInstrumentId);
         }
 
         public void UpdateFilter() {
@@ -411,11 +419,23 @@ namespace WaveTracker.Audio {
             stereoBiQuadFilter.SetLowpassFilter(AudioEngine.TrueSampleRate, _filterCutoffFrequency, filterResonance);
         }
 
-        public void UpdateIR() {
-            float[] ir = irInstrumentId < 0 || irInstrumentId >= App.CurrentModule.Instruments.Count ? 
-                new float[0]
-                : (App.CurrentModule.Instruments[irInstrumentId] as SampleInstrument)?.sample.sampleDataL.Select(x => x / (float)short.MaxValue).ToArray() ?? new float[0];
-            irConvolution.SetIR(ir);
+        public void UpdateIR(int frame, int row, int playbackInstrumentId) {
+            Instrument playbackInstr = playbackInstrumentId == WTPattern.EVENT_EMPTY || playbackInstrumentId < 0 || playbackInstrumentId >= App.CurrentModule.Instruments.Count ? this.CurrentInstrument : App.CurrentModule.Instruments[playbackInstrumentId];
+            if (irInstrumentId > 0
+                && irInstrumentId < App.CurrentModule.Instruments.Count
+                && App.CurrentModule.Instruments[irInstrumentId] is SampleInstrument irSampleInstrument
+                && playbackInstr is SampleInstrument thisSampleInstrument
+                && irSampleInstrument.sample.sampleRate == thisSampleInstrument.sample.sampleRate)
+            {
+                irConvolution.SetIR(irSampleInstrument.sample.sampleDataL.Select(x => x / (float)short.MaxValue).ToArray());
+                this.Errors.TryRemove((frame, row), out _);
+            }
+            else
+            {
+                irConvolution.SetIR(new float[0]);
+                irInstrumentId = -1;
+                this.Errors.TryAdd((frame, row), "Err");
+            }
         }
 
         public void ResetModulations() {
@@ -705,7 +725,7 @@ namespace WaveTracker.Audio {
                 SetVolume(t.value);
             }
             if (t.eventType == TickEventType.Effect) {
-                ApplyEffect((char)t.value, t.value2);
+                ApplyEffect((char)t.value, t.value2, t.value3, t.frame, t.row);
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -803,7 +823,7 @@ namespace WaveTracker.Audio {
                 float r = sampleR * _volumeSmooth * _rightAmp * _fadeMultiplier * freqCut;
                 stereoBiQuadFilter.Transform(l, r, out l, out r);
 
-                irConvolution.Transform(l, r, out l, out r);
+                irConvolution.Transform(CurrentSample?.currentPlaybackPosition ?? 0, l, r, out l, out r);
 
                 left = l * 0.225f * bassBoost;
                 right = r * 0.225f * bassBoost;

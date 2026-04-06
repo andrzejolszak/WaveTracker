@@ -16,9 +16,9 @@ namespace WaveTracker.Audio {
             filterR = new SimdConvolver2(ir);
         }
 
-        public void Transform(float inputL, float inputR, out float outputL, out float outputR) {
-            outputL = filterL.ProcessSample(inputL);
-            outputR = filterR.ProcessSample(inputR);
+        public void Transform(int playbackPosition, float inputL, float inputR, out float outputL, out float outputR) {
+            outputL = filterL.ProcessSample(playbackPosition, inputL);
+            outputR = filterR.ProcessSample(playbackPosition, inputR);
         }
     }
 
@@ -194,10 +194,19 @@ namespace WaveTracker.Audio {
             }
         }
 
-        public float ProcessSample(float input) {
+        private int lastPlayback = -1;
+        private float lastRes = 0.0f;
+
+        public float ProcessSample(int playbackPosition, float input) {
             if (_ir.Length == 0) {
                 return input;
             }
+
+            if (playbackPosition == lastPlayback) {
+                return lastRes;
+            }
+
+            lastPlayback = playbackPosition;
 
             // Write incoming sample into circular buffer
             _buffer[_pos] = input;
@@ -232,7 +241,8 @@ namespace WaveTracker.Audio {
             if (_pos >= _length)
                 _pos = 0;
 
-            return result * _normalizationGain;
+            lastRes = result * _normalizationGain;
+            return lastRes;
         }
     }
 
