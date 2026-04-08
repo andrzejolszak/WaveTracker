@@ -81,7 +81,7 @@ namespace WaveTracker.Tracker {
             SetBaseFrequency();
         }
 
-        private void SetBaseFrequency() {
+        public void SetBaseFrequency() {
             BaseFrequency = Helpers.NoteToFrequency(BaseKey - Detune / 100f);
         }
 
@@ -401,6 +401,22 @@ namespace WaveTracker.Tracker {
             
             using (FileStream file = File.OpenWrite(filepath))
                 outWav.Write(file);
+        }
+
+        public Wav AsWav() {
+            short[] pcm16Samples = sampleDataL;
+            if (IsStereo) {
+                pcm16Samples = new short[2 * sampleDataL.Length];
+
+                for (int i = 0; i < sampleDataL.Length; i++) {
+                    pcm16Samples[2 * i] = sampleDataL[i];
+                    pcm16Samples[2 * i + 1] = sampleDataR[i];
+                }
+            }
+
+            int channels = IsStereo ? 2 : 1;
+
+            return new Wav(pcm16Samples, (ushort)channels, (uint)sampleRate);
         }
     }
 }

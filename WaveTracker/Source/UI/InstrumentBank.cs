@@ -27,6 +27,7 @@ namespace WaveTracker.UI {
 
         public SpriteButton bNewWave, bNewNoise, bNewSample, bRemove, bDuplicate, bMoveUp, bMoveDown, bRename;
         public SpriteButton bEdit;
+        public SpriteButton bImportSf;
         public Menu menu;
         public InstrumentBank(int x, int y) : base("Instrument Bank", x, y, 156, 488) {
             int buttonX = 1;
@@ -39,18 +40,21 @@ namespace WaveTracker.UI {
             bNewSample = new SpriteButton(buttonX, 10, 15, 15, 240, 0, this);
             bNewSample.SetTooltip("New Sample Instrument", "Add a new sample instrument to the track");
             buttonX += 15;
+            bImportSf = new SpriteButton(buttonX, 10, 15, 15, 420, 0, this);
+            bImportSf.SetTooltip("Import SoundFont", "Import from a SF2 sound font");
+            buttonX += 15;
             bRemove = new SpriteButton(buttonX, 10, 15, 15, 360, 0, this);
             bRemove.SetTooltip("Remove Instrument", "Delete this instrument from the track");
             buttonX += 15;
             bDuplicate = new SpriteButton(buttonX, 10, 15, 15, 255, 0, this);
             bDuplicate.SetTooltip("Duplicate instrument", "Create a copy of this instrument and add it to the track");
-            buttonX += 22;
+            buttonX += 15;
             bMoveDown = new SpriteButton(buttonX, 10, 15, 15, 345, 0, this);
             bMoveDown.SetTooltip("Move down", "Move this instrument to be lower down the list");
             buttonX += 15;
             bMoveUp = new SpriteButton(buttonX, 10, 15, 15, 330, 0, this);
             bMoveUp.SetTooltip("Move up", "Move this instrument to be higher up the list");
-            buttonX += 22;
+            buttonX += 15;
             bEdit = new SpriteButton(buttonX, 10, 15, 15, 270, 0, this);
             bEdit.SetTooltip("Edit instrument", "Open the instrument editor");
             buttonX += 15;
@@ -187,6 +191,10 @@ namespace WaveTracker.UI {
                     Edit();
                 }
 
+                if (bImportSf.Clicked) {
+                    ImportSoundFont();
+                }
+
                 if (bRename.Clicked || App.Shortcuts["General\\Rename instrument"].IsPressedDown) {
                     Rename();
                 }
@@ -262,6 +270,10 @@ namespace WaveTracker.UI {
             App.InstrumentEditor.Open(GetCurrentInstrument, CurrentInstrumentIndex);
         }
 
+        public void ImportSoundFont() {
+            App.SoundFontImporter.Open();
+        }
+
         private void Goto(int index) {
             CurrentInstrumentIndex = index;
             MoveBounds();
@@ -319,6 +331,7 @@ namespace WaveTracker.UI {
             bMoveDown.Draw();
             bEdit.Draw();
             bRename.Draw();
+            bImportSf.Draw();
             DrawList();
             scrollbar.Draw();
         }

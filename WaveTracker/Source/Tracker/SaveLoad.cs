@@ -448,15 +448,19 @@ namespace WaveTracker {
             }
         }
 
-        private static Dictionary<string, string> fileDialogFilters = new() {
+        public static Dictionary<string, string> fileDialogFilters = new() {
             {"WaveTracker modules", "wtm"},
         };
 
-        private static Dictionary<string, string> wavDialogFilters = new() {
+        public static Dictionary<string, string> soundFontDialogFilters = new() {
+            {"Sound Font SF2 files", "sf2"},
+        };
+
+        public static Dictionary<string, string> wavDialogFilters = new() {
             {"Waveform Audio File Format", "wav"},
         };
 
-        private static Dictionary<string, string> themeDialogFilters = new() {
+        public static Dictionary<string, string> themeDialogFilters = new() {
             {"WaveTraker Theme", "wttheme"},
         };
 
@@ -464,7 +468,7 @@ namespace WaveTracker {
         /// Opens a file browser and asks the user to choose a wtm file. (Open)
         /// </summary>
         /// <returns>true if they choose a file and accept, false otherwise.</returns>
-        private static bool SetFilePathThroughOpenDialog(out string filepath) {
+        public static bool SetFilePathThroughOpenDialog(out string filepath, Dictionary<string, string>? filters = null) {
             bool didIt = false;
             string ret = "";
             filepath = CurrentFilepath;
@@ -474,7 +478,7 @@ namespace WaveTracker {
                     Input.CancelClick();
 
                     string initialDir = ReadPath("openwtm", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-                    NfdStatus status = Nfd.OpenDialog(out string openPath, fileDialogFilters, initialDir);
+                    NfdStatus status = Nfd.OpenDialog(out string openPath, filters ?? fileDialogFilters, initialDir);
 
                     if (status == NfdStatus.Ok) {
                         ret = openPath;

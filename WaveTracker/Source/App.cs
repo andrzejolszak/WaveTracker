@@ -80,6 +80,11 @@ namespace WaveTracker {
         public static WaveEditor WaveEditor { get; private set; }
 
         /// <summary>
+        /// The SoundFontImporter window
+        /// </summary>
+        public static SoundFontImporter SoundFontImporter { get; private set; }
+
+        /// <summary>
         /// The module currently being edited
         /// </summary>
         public static WTModule CurrentModule { get; set; }
@@ -257,6 +262,7 @@ namespace WaveTracker {
             EditSettings = new EditSettings(312, 395 + MENUSTRIP_HEIGHT);
             Toolbar = new Toolbar(2, 0 + MENUSTRIP_HEIGHT);
             WaveEditor = new WaveEditor();
+            SoundFontImporter = new SoundFontImporter();
             FramesPanel = new FramesPanel(2, 18 + MENUSTRIP_HEIGHT, 604, 42);
             ModulePanel = new ModulePanel(2, 395 + MENUSTRIP_HEIGHT);
             AudioEngine.Initialize();
@@ -333,6 +339,7 @@ namespace WaveTracker {
                 WaveEditor.Update();
                 InstrumentBank.Update();
                 InstrumentEditor.Update();
+                SoundFontImporter.Update();
             }
 
             int pianoInput = -1;
@@ -435,6 +442,7 @@ namespace WaveTracker {
             if (!VisualizerMode) {
                 WaveEditor.Draw();
                 InstrumentEditor.Draw();
+                SoundFontImporter.Draw();
             }
 
             Dialogs.Draw();
