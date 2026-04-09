@@ -65,12 +65,6 @@ namespace WaveTracker.UI {
                     foreach (int m in samplesList.markedItems.OrderBy(x => x))
                     {
                         Sample sample = samplesList.items[m];
-                        sample.resampleMode = App.Settings.SamplesWaves.DefaultResampleModeSample;
-                        sample.SetBaseKey(App.Settings.SamplesWaves.DefaultSampleBaseKey);
-                        sample.SetDetune(0);
-                        sample.loopPoint = 0;
-                        sample.loopLength = 0;
-                        sample.loopType = Sample.LoopType.OneShot;
 
                         if (App.Settings.SamplesWaves.AutomaticallyTrimSamples) {
                             sample.TrimSilence();
@@ -79,8 +73,6 @@ namespace WaveTracker.UI {
                         if (App.Settings.SamplesWaves.AutomaticallyNormalizeSamplesOnImport) {
                             sample.Normalize();
                         }
-
-                        sample.resampleMode = App.Settings.SamplesWaves.DefaultResampleModeSample;
 
                         App.CurrentModule.Instruments.Add(new SampleInstrument { name = sample.name, sample = sample });
                     }
@@ -98,6 +90,7 @@ namespace WaveTracker.UI {
 
         public new void Close() {
             base.Close();
+            samplesList.SetList(new List<Sample>(0));
             AudioEngine.PreviewStream = null;
         }
 
@@ -143,12 +136,14 @@ namespace WaveTracker.UI {
             public SF2Sound(string Name) {
                 this.SoundName = Name;
             }
+
+            public byte OriginalKey { get; internal set; }
+            public int Id { get; internal set; }
+            public string InstrName { get; internal set; }
         }
 
         static List<Sample> UnpackSF2(string SourceFile) {
             Sounds = new List<SF2Sound>();
-
-            byte[] SampleData;
 
             FileStream stream = new FileStream(SourceFile, FileMode.Open);
             BinaryReader reader = new BinaryReader(stream);
@@ -165,7 +160,8 @@ namespace WaveTracker.UI {
             /*if (reader.ReadUInt32() != 0x5453494C) //'sfbk'
                 Console.WriteLine("Expected sfbk block");*/
 
-            if (reader.ReadUInt32() != 0x5453494C) //'LIST'
+            uint t = reader.ReadUInt32();
+            if (t != 0x5453494C) //'LIST'
                 throw new Exception("Expected LIST block!");
 
             //offset of LIST block from this point on
@@ -193,7 +189,7 @@ namespace WaveTracker.UI {
             //read sample data size
             uint SampleDataSize = reader.ReadUInt32();
             //read sample data
-            SampleData = reader.ReadBytes((int)SampleDataSize);
+            byte[] SampleData = reader.ReadBytes((int)SampleDataSize);
 
             if (reader.ReadUInt32() != 0x5453494C) //'LIST'
                 throw new Exception("Expected LIST block!");
@@ -219,16 +215,50 @@ namespace WaveTracker.UI {
             SkipSubchunk(reader);
 
             //inst
-            SkipSubchunk(reader);
+            string sectionName = new string(reader.ReadChars(4));
+            if (sectionName != "inst") {
+                throw new InvalidOperationException("Expected 'inst', but got " + sectionName);
+            }
+
+            uint listSize = reader.ReadUInt32();
+            List<inst_rec> instRecs = new();
+            for (int i = 0; i < listSize / inst_rec.Size; i++) {
+                instRecs.Add(new inst_rec(reader));
+            }
 
             //ibag
-            SkipSubchunk(reader);
+            sectionName = new string(reader.ReadChars(4));
+            if (sectionName != "ibag") {
+                throw new InvalidOperationException("Expected 'ibag', but got " + sectionName);
+            }
+
+            listSize = reader.ReadUInt32();
+            Dictionary<int, ushort> ibagIdToIgen = new();
+            for (int i = 0; i < listSize / 4; i++) {
+                ibagIdToIgen.Add(i, reader.ReadUInt16());
+                _ = reader.ReadUInt16();
+            }
 
             //imod
             SkipSubchunk(reader);
 
             //igen
-            SkipSubchunk(reader);
+            sectionName = new string(reader.ReadChars(4));
+            if (sectionName != "igen") {
+                throw new InvalidOperationException("Expected 'igen', but got " + sectionName);
+            }
+
+            listSize = reader.ReadUInt32();
+            Dictionary<int, ushort> igenIdToSampleId = new();
+            for (int i = 0; i < listSize / 4; i++) {
+                ushort type = reader.ReadUInt16();
+                ushort val = reader.ReadUInt16();
+
+                if (type == 53) // SampleId
+                {
+                    igenIdToSampleId.Add(i, val);
+                }
+            }
 
             //shdr
             //Sample data!!! finally
@@ -241,22 +271,30 @@ namespace WaveTracker.UI {
             int SHDREntryCount = ((int)SHDRSize / 46) - 1; //always has at least 2 entries, one of them is padding
 
             for (int i = 0; i < SHDREntryCount; i++) {
-                Sounds.Add(UnpackSample(reader));
+                SF2Sound sound = UnpackSample(i, reader);
+                Sounds.Add(sound);
+
+                // This is slow, but we won't see many items...
+                int igen = igenIdToSampleId.FirstOrDefault(x => x.Value == i).Key;
+                int ibag = ibagIdToIgen.OrderByDescending(x => x.Value).FirstOrDefault(x => x.Value <= igen).Key;
+                string instrName = instRecs.OrderByDescending(x => x.wInstBagNdx).FirstOrDefault(x => x.wInstBagNdx <= ibag)?.achInstName.Trim('\0');
+                sound.InstrName = instrName;
             }
 
             reader.Close();
 
-            List<Sample> samples = new List<Sample>(); 
+            List<Sample> samples = new List<Sample>();
             for (int i = 0; i < Sounds.Count; i++) {
                 SF2Sound sF2Sound = Sounds[i];
                 (short[]? L, short[]? R) audioData = GetAudioData(sF2Sound, SampleData);
                 if (audioData.L is not null) {
                     Sample s = new Sample() {
-                        name = sF2Sound.SoundName,
+                        name = sF2Sound.InstrName + "_" + sF2Sound.SoundName,
                         sampleRate = (int)sF2Sound.SampleRate,
                         sampleDataL = audioData.L,
                         sampleDataR = audioData.R ?? [],
                     };
+                    s.SetBaseKey(sF2Sound.OriginalKey);
 
                     samples.Add(s);
                 }
@@ -276,11 +314,9 @@ namespace WaveTracker.UI {
 
             //seek to sample data start
             reader.BaseStream.Seek((long)LISTOffset, SeekOrigin.Begin);
-
-            Console.WriteLine("Seeking past subchunk " + SubchunkName);
         }
 
-        static SF2Sound UnpackSample(BinaryReader reader) {
+        static SF2Sound UnpackSample(int id, BinaryReader reader) {
             string SampleName = "";
 
             for (int c = 0; c < 20; c++) {
@@ -290,17 +326,14 @@ namespace WaveTracker.UI {
                     SampleName += (char)NextChar;
             }
 
-            Console.WriteLine("sample name '" + SampleName + "'");
-
             SF2Sound NewSound = new SF2Sound(SampleName);
+            NewSound.Id = id;
 
             uint SampleStart = reader.ReadUInt32();
             uint SampleEnd = reader.ReadUInt32();
 
             NewSound.SampleStart = SampleStart;
             NewSound.SampleSize = (SampleEnd - SampleStart);
-
-            Console.WriteLine("sample start " + NewSound.SampleStart + " sample size " + NewSound.SampleSize);
 
             uint LoopStart = reader.ReadUInt32();
             uint LoopEnd = reader.ReadUInt32();
@@ -309,15 +342,11 @@ namespace WaveTracker.UI {
             NewSound.SampleLoopStart = LoopStart - SampleStart;
             NewSound.SampleLoopLength = (LoopEnd - LoopStart);
 
-            Console.WriteLine("loop start " + NewSound.SampleLoopStart + " loop length " + NewSound.SampleLoopLength);
-
             uint SampleRate = reader.ReadUInt32();
 
             NewSound.SampleRate = SampleRate;
 
-            Console.WriteLine("sample rate " + SampleRate);
-
-            reader.ReadByte(); //original pitch
+            NewSound.OriginalKey = reader.ReadByte();
             reader.ReadByte(); //pitch correction
 
             ushort SampleLink = reader.ReadUInt16(); //sample link
@@ -326,8 +355,6 @@ namespace WaveTracker.UI {
             //need to be taken into account when writing sample
             NewSound.SampleLink = SampleLink;
             NewSound.SampleType = SampleType;
-
-            Console.WriteLine("sample type " + SampleType + " sample link " + SampleLink);
 
             return NewSound;
         }
@@ -391,6 +418,22 @@ namespace WaveTracker.UI {
             }
 
             return (dataL, dataR);
+        }
+    }
+
+    public class inst_rec {
+        public static int Size = 22;
+        public string achInstName;
+        public ushort wInstBagNdx;
+
+        public inst_rec(BinaryReader br) {
+            achInstName = new string(br.ReadChars(20));
+            wInstBagNdx = br.ReadUInt16();
+        }
+        public override string ToString() {
+            string r = "";
+            r += $"{achInstName.PadRight(20)}, ibag: {wInstBagNdx.ToString().PadRight(5)}";
+            return r;
         }
     }
 
