@@ -62,7 +62,7 @@ namespace WaveTracker {
             public bool FadeVolumeColumn { get; set; } = true;
             public bool ShowPreviousNextFrames { get; set; } = true;
             public bool IgnoreStepWhenMoving { get; set; } = true;
-            public MoveToNextRowBehavior StepAfterNumericInput { get; set; } = MoveToNextRowBehavior.Always;
+            public MoveToNextRowBehavior StepAfterNumericInput { get; set; } = MoveToNextRowBehavior.Never;
             public bool WrapCursorHorizontally { get; set; } = false;
             public bool KeyRepeat { get; set; } = true;
             public int PageJumpAmount { get; set; } = 4;
