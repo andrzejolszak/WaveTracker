@@ -145,14 +145,14 @@ namespace WaveTracker {
                     return;
                 }
 
-                velocity ??= 99;
-                CurrentlyHeldDownNotes.Add(note, (velocity.Value, freeChannel));
+                int sanitizedVelocity = velocity ?? 99;
+                CurrentlyHeldDownNotes.Add(note, (sanitizedVelocity, freeChannel));
                 if (!Playback.IsPlaying) {
                     AudioEngine.ResetTicks();
                 }
 
                 freeChannel.SetMacro(App.InstrumentEditor.IsOpen ? App.InstrumentEditor.CurrentInstrumentID : App.InstrumentBank.CurrentInstrumentIndex);
-                freeChannel.SetVolume(velocity.Value);
+                freeChannel.SetVolume(sanitizedVelocity);
                 freeChannel.TriggerNote(note);
 
                 if (enterToPatternEditor) {
