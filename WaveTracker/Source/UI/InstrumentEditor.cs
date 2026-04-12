@@ -20,7 +20,7 @@ namespace WaveTracker.UI {
         public EnvelopeListBox envelopeList;
         private PreviewPiano piano;
         private TabGroup tabGroup;
-
+        private int[] _notesArray = new int[ChannelManager.PreviewChannels.Count];
         public InstrumentEditor() : base("Instrument Editor", 600, 340) {
             ExitButton.SetTooltip("Close", "Close instrument editor");
             sampleEditor = new SampleEditor(16, 36, this);
@@ -44,7 +44,7 @@ namespace WaveTracker.UI {
                     else {
                         envelopeList.Update();
                         if (envelopeList.SelectedIndex >= 0) {
-                            envelopeEditor.SetEnvelope(CurrentInstrument.envelopes[envelopeList.SelectedIndex], ChannelManager.PreviewChannel.envelopePlayers[CurrentInstrument.envelopes[envelopeList.SelectedIndex].Type]);
+                            envelopeEditor.SetEnvelope(CurrentInstrument.envelopes[envelopeList.SelectedIndex], ChannelManager.PreviewChannels[0].envelopePlayers[CurrentInstrument.envelopes[envelopeList.SelectedIndex].Type]);
                             envelopeEditor.Update();
                         }
                         else {
@@ -55,7 +55,7 @@ namespace WaveTracker.UI {
                 else {
                     envelopeList.Update();
                     if (envelopeList.SelectedIndex >= 0) {
-                        envelopeEditor.SetEnvelope(CurrentInstrument.envelopes[envelopeList.SelectedIndex], ChannelManager.PreviewChannel.envelopePlayers[CurrentInstrument.envelopes[envelopeList.SelectedIndex].Type]);
+                        envelopeEditor.SetEnvelope(CurrentInstrument.envelopes[envelopeList.SelectedIndex], ChannelManager.PreviewChannels[0].envelopePlayers[CurrentInstrument.envelopes[envelopeList.SelectedIndex].Type]);
                         envelopeEditor.Update();
                     }
                     else {
@@ -102,12 +102,20 @@ namespace WaveTracker.UI {
                 DrawRoundedRect(8, 28, width - 16, 270, Color.White);
                 tabGroup.Draw();
                 DrawRect(9, 28, 280, 1, Color.White);
-                if (PianoInput.CurrentNote > -1) {
-                    piano.Draw(PianoInput.CurrentNote + ChannelManager.PreviewChannel.envelopePlayers[Envelope.EnvelopeType.Arpeggio].Value);
+
+                int i = 0;
+                foreach (var n in PianoInput.CurrentlyHeldDownNotes)
+                {
+                    this._notesArray[i] = n.Key + n.Value.Channel.envelopePlayers[Envelope.EnvelopeType.Arpeggio].Value;
+                    i++;
                 }
-                else {
-                    piano.Draw();
+                
+                for (; i < this._notesArray.Length; i++) {
+                    this._notesArray[i] = -1;
                 }
+
+                piano.Draw(this._notesArray);
+
                 if (CurrentInstrument is SampleInstrument instrument && tabGroup.SelectedTabIndex == 0) {
                     sampleEditor.Draw();
                     piano.ShowBaseKey = true;

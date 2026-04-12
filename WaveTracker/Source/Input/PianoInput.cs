@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using WaveTracker.Audio;
 using WaveTracker.Midi;
 using WaveTracker.Tracker;
@@ -13,19 +14,11 @@ namespace WaveTracker {
     public static class PianoInput {
         private static object pianoEventLocker = new object();
 
-        public static List<int> currentlyHeldDownNotes = [];
+        public static Dictionary<int, (int Velocity, Channel Channel)> CurrentlyHeldDownNotes = [];
 
         public static List<int> keyboardNotes = [];
         public static List<int> midiNotes = [];
-        private static int previewNote;
-        /// <summary>
-        /// The current note's velocity
-        /// </summary>
-        public static int CurrentVelocity { get; private set; }
-        /// <summary>
-        /// The current note pressed, -1 if none are held down
-        /// </summary>
-        public static int CurrentNote { get; private set; }
+
         private static IMidiIn MidiIn_ { get; set; }
         /// <summary>
         /// The names of all midi devices detected. The first item is reserved for "(none)"
@@ -60,14 +53,12 @@ namespace WaveTracker {
         }
 
         public static void ReceivePreviewPianoInput(int previewPianoCurrentNote) {
-            if (previewPianoCurrentNote != previewNote) {
+            if (!CurrentlyHeldDownNotes.ContainsKey(previewPianoCurrentNote)) {
                 if (previewPianoCurrentNote >= 0) {
                     OnNoteOnEvent(previewPianoCurrentNote, 99);
                 }
 
-                OnNoteOffEvent(previewNote);
-                previewNote = previewPianoCurrentNote;
-
+                OnNoteOffEvent(previewPianoCurrentNote);
             }
         }
 
@@ -148,16 +139,21 @@ namespace WaveTracker {
             if (Dialogs.currentSampleModifyDialog != null && Dialogs.currentSampleModifyDialog.WindowIsOpen) {
                 return;
             }
-            if (!currentlyHeldDownNotes.Contains(note)) {
-                currentlyHeldDownNotes.Add(note);
-                CurrentNote = note;
-                CurrentVelocity = velocity ?? 99;
+            if (!CurrentlyHeldDownNotes.ContainsKey(note)) {
+                Channel? freeChannel = ChannelManager.PreviewChannels.FirstOrDefault(x => !x.IsPlaying);
+                if (freeChannel == null) {
+                    return;
+                }
+
+                velocity ??= 99;
+                CurrentlyHeldDownNotes.Add(note, (velocity.Value, freeChannel));
                 if (!Playback.IsPlaying) {
                     AudioEngine.ResetTicks();
                 }
-                ChannelManager.PreviewChannel.SetMacro(App.InstrumentEditor.IsOpen ? App.InstrumentEditor.CurrentInstrumentID : App.InstrumentBank.CurrentInstrumentIndex);
-                ChannelManager.PreviewChannel.SetVolume(CurrentVelocity);
-                ChannelManager.PreviewChannel.TriggerNote(CurrentNote);
+
+                freeChannel.SetMacro(App.InstrumentEditor.IsOpen ? App.InstrumentEditor.CurrentInstrumentID : App.InstrumentBank.CurrentInstrumentIndex);
+                freeChannel.SetVolume(velocity.Value);
+                freeChannel.TriggerNote(note);
 
                 if (enterToPatternEditor) {
                     App.PatternEditor.TryToEnterNote(note, velocity);
@@ -170,25 +166,15 @@ namespace WaveTracker {
         /// </summary>
         /// <param name="note"></param>
         private static void OnNoteOffEvent(int note) {
-            currentlyHeldDownNotes.Remove(note);
-            if (currentlyHeldDownNotes.Count > 0) {
-                if (CurrentNote != currentlyHeldDownNotes[currentlyHeldDownNotes.Count - 1]) {
-                    CurrentNote = currentlyHeldDownNotes[currentlyHeldDownNotes.Count - 1];
-                    ChannelManager.PreviewChannel.SetMacro(App.InstrumentBank.CurrentInstrumentIndex);
-                    ChannelManager.PreviewChannel.SetVolume(CurrentVelocity);
-                    ChannelManager.PreviewChannel.TriggerNote(CurrentNote);
-                }
-
-            }
-            else {
-                CurrentNote = -1;
-                if (!Playback.IsPlaying) {
-                    AudioEngine.ResetTicks();
-                }
-
-                ChannelManager.PreviewChannel.PreviewCut();
+            if (!CurrentlyHeldDownNotes.Remove(note, out (int Velocity, Channel Channel) channel)) {
+                return;
             }
 
+            if (!Playback.IsPlaying) {
+                AudioEngine.ResetTicks();
+            }
+
+            channel.Channel.PreviewCut();
         }
 
         /// <summary>

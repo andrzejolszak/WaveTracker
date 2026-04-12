@@ -17,10 +17,7 @@ namespace WaveTracker.UI {
             SetParent(parent);
         }
 
-        public void Draw() {
-            Draw(-1);
-        }
-        public void Draw(int pressedNote) {
+        public void Draw(params int[] pressedNote) {
             DrawRect(-1, -1, width + 2, height + 2, UIColors.black);
             // draw 10 octaves of the piano sprite
             for (int i = 0; i < 10; ++i) {
@@ -36,12 +33,14 @@ namespace WaveTracker.UI {
                 }
             }
             // draw the pressed note
-            if (pressedNote >= 12 && pressedNote < 132) {
-                if (Helpers.IsNoteBlackKey(pressedNote)) {
-                    DrawSprite((pressedNote - 12) * 4, 0, new Rectangle(52, 80, 4, 24));
-                }
-                else {
-                    DrawSprite((pressedNote - 12) * 4, 0, new Rectangle(48, 80, 4, 24));
+            foreach (int i in pressedNote) {
+                if (i >= 12 && i < 132) {
+                    if (Helpers.IsNoteBlackKey(i)) {
+                        DrawSprite((i - 12) * 4, 0, new Rectangle(52, 80, 4, 24));
+                    }
+                    else {
+                        DrawSprite((i - 12) * 4, 0, new Rectangle(48, 80, 4, 24));
+                    }
                 }
             }
         }

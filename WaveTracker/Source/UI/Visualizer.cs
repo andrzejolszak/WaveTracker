@@ -164,7 +164,7 @@ namespace WaveTracker.UI {
                         }
                     }
                 }
-                chan = ChannelManager.PreviewChannel;
+                chan = ChannelManager.PreviewChannels[0];
                 channelStates[writeIndex][24].Clear();
                 if (!(chan.CurrentInstrument is SampleInstrument inst1 && !inst1.sample.useInVisualization) && chan.CurrentAmplitude > 0.0001f) {
                     if (chan.CurrentInstrument is WaveInstrument && chan.CurrentPitch >= 12 && chan.CurrentPitch <= 131) {
@@ -337,7 +337,7 @@ namespace WaveTracker.UI {
                 private Channel Channel {
                     get {
                         if (App.PatternEditor.cursorPosition.Channel == channelID && !ChannelManager.Channels[channelID].IsPlaying && !Playback.IsPlaying) {
-                            return ChannelManager.PreviewChannel;
+                            return ChannelManager.PreviewChannels[0];
                         }
                         else {
                             return ChannelManager.Channels[channelID];

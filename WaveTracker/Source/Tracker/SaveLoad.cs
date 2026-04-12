@@ -220,7 +220,9 @@ namespace WaveTracker {
             WaveBank.lastSelectedWave = 0;
             ChannelManager.Reset();
             ChannelManager.UnmuteAllChannels();
-            ChannelManager.PreviewChannel.SetWave(0);
+            foreach (Channel pc in ChannelManager.PreviewChannels) {
+                pc.SetWave(0);
+            }
         }
 
         public static void SaveFileAsVoid() {
@@ -361,7 +363,9 @@ namespace WaveTracker {
                 Playback.Goto(0, 0);
                 ChannelManager.Reset();
                 ChannelManager.UnmuteAllChannels();
-                ChannelManager.PreviewChannel.SetWave(0);
+                foreach (Channel pc in ChannelManager.PreviewChannels) {
+                    pc.SetWave(0);
+                }
                 CurrentFilepath = path;
                 AddPathToRecentFiles(CurrentFilepath);
             }

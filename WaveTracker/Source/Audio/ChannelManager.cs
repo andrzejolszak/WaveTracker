@@ -4,14 +4,18 @@ using WaveTracker.Tracker;
 namespace WaveTracker.Audio {
     public static class ChannelManager {
         /// <summary>
-        /// An extra channel used for previewing notes and waves in the editor
+        /// An extra channels used for previewing notes and waves in the editor
         /// </summary>
-        public static Channel PreviewChannel { get; private set; }
+        public static List<Channel> PreviewChannels { get; private set; }
         public static List<Channel> Channels { get; private set; }
 
         public static void Initialize(int numChannels) {
             Channel.InitializeNoise();
-            PreviewChannel = new Channel(-1);
+            PreviewChannels = [];
+            for (int i = 0; i < 6; i++) {
+                PreviewChannels.Add(new Channel(-1));
+            }
+
             Channels = [];
             for (int i = 0; i < numChannels; i++) {
                 Channels.Add(new Channel(i));
@@ -25,8 +29,11 @@ namespace WaveTracker.Audio {
             foreach (Channel channel in Channels) {
                 channel.Reset();
             }
-            PreviewChannel.Reset();
-            PreviewChannel.SetWave(UI.WaveBank.lastSelectedWave);
+
+            foreach (Channel pc in PreviewChannels) {
+                pc.Reset();
+                pc.SetWave(UI.WaveBank.lastSelectedWave);
+            }
         }
 
         /// <summary>

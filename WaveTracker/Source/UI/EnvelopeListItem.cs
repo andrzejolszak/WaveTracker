@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using WaveTracker.Audio;
 using WaveTracker.Tracker;
 
 namespace WaveTracker.UI {
@@ -49,7 +50,9 @@ namespace WaveTracker.UI {
             bypassToggle.Update();
             if (bypassToggle.ValueWasChangedInternally) {
                 Envelope.IsActive = bypassToggle.Value;
-                Audio.ChannelManager.PreviewChannel.Reset();
+                foreach (Channel pc in ChannelManager.PreviewChannels) {
+                    pc.Reset();
+                }
             }
         }
 

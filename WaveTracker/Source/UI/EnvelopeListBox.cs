@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using WaveTracker.Audio;
 using WaveTracker.Tracker;
 
 namespace WaveTracker.UI {
@@ -44,7 +45,9 @@ namespace WaveTracker.UI {
                     }
                     if (items[i].WasClickedOnToDelete) {
                         List.RemoveAt(i);
-                        Audio.ChannelManager.PreviewChannel.Reset();
+                        foreach (Channel pc in ChannelManager.PreviewChannels) {
+                            pc.Reset();
+                        }
                         App.CurrentModule.SetDirty();
                         UpdateRemainingEnvelopes();
                         if (SelectedIndex >= List.Count) {
@@ -74,7 +77,9 @@ namespace WaveTracker.UI {
             addEnvelopeButton.Update();
             if (addEnvelopeButton.SelectedAnItem) {
                 AddEnvelope(remainingEnvelopes[addEnvelopeButton.SelectedIndex]);
-                Audio.ChannelManager.PreviewChannel.Reset();
+                foreach (Channel pc in ChannelManager.PreviewChannels) {
+                    pc.Reset();
+                }
                 App.CurrentModule.SetDirty();
             }
 

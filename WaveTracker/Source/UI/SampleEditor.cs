@@ -750,7 +750,7 @@ namespace WaveTracker.UI {
                 if (Sample.loopType != Sample.LoopType.OneShot) {
                     DrawRect(x + loopPosition, y, 1, height, Color.Yellow);
                 }
-                if (Sample.currentPlaybackPosition < data.Length && ChannelManager.PreviewChannel.IsPlaying) {
+                if (Sample.currentPlaybackPosition < data.Length && ChannelManager.PreviewChannels[0].IsPlaying) {
                     DrawRect(x + GetXPositionOfSample(Sample.currentPlaybackPosition, width), y, 1, height, Color.Aqua);
                 }
                 if (waveformRegion.IsHovered) {
