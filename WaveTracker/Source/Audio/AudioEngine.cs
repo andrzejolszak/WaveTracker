@@ -101,11 +101,13 @@ namespace WaveTracker.Audio {
             foreach (Channel chan in ChannelManager.Channels) {
                 chan.UpdateFilter();
                 chan.UpdateIR(-1, -1, -1);
+                chan.SetDelay(0);
             }
 
             foreach (Channel pc in ChannelManager.PreviewChannels) {
                 pc.UpdateFilter();
                 pc.UpdateIR(-1, -1, -1);
+                pc.SetDelay(0);
             }
         }
 

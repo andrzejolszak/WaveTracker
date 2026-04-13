@@ -91,6 +91,7 @@ namespace WaveTracker.Audio {
         private float lastSampleR;
         private StereoBiQuadFilter stereoBiQuadFilter; // Hxy command
         private IRConvolution irConvolution; // Txx command
+        private Delay delay;
         private float _waveStretchSmooth;
         public readonly ConcurrentDictionary<(int Frame, int Row), string> Errors = new ConcurrentDictionary<(int Frame, int Row), string>();
         public int SampleStartOffset { get; private set; } // Yxx command
@@ -133,6 +134,7 @@ namespace WaveTracker.Audio {
         }
 
         private static Envelope[] defaultEnvelopes;
+        private int delayParam;
 
         public static void InitializeNoise() {
             noiseSample = new float[44100 * 4];
@@ -157,6 +159,7 @@ namespace WaveTracker.Audio {
             noiseLength = noiseSample.Length;
             stereoBiQuadFilter = new StereoBiQuadFilter();
             irConvolution = new IRConvolution();
+            delay = new Delay();
             Reset();
         }
 
@@ -191,6 +194,10 @@ namespace WaveTracker.Audio {
 
                     vibratoSpeed = (parameter + 1) / 16;
                     vibratoIntensity = parameter % 16;
+                    break;
+
+                case '5':
+                    SetDelay(parameter);
                     break;
                 case '7':
                     tremoloSpeed = (parameter + 1) / 16;
@@ -263,6 +270,14 @@ namespace WaveTracker.Audio {
                     SetIR(parameter, frame, row, instrumentId);
                     break;
             }
+        }
+
+        public void SetDelay(int parameter) {
+            if (this.delayParam == parameter) {
+                return;
+            }
+
+            this.delay.SetParams((parameter + 1) / 16, parameter % 16);
         }
 
         public void SetVolume(int vol) {
@@ -375,6 +390,7 @@ namespace WaveTracker.Audio {
             tremoloMultiplier = 1f;
             tremoloSpeed = 0;
             tremoloTime = 0;
+            delayParam = 0;
             stereoPhaseOffset = 0;
             waveIndex.Reset(0);
             waveBlendAmt.Reset(0);
@@ -395,6 +411,7 @@ namespace WaveTracker.Audio {
             SetFilter(1, 1);
             SetIR(-1, -1, -1, -1);
             SetPanning(0.5f);
+            SetDelay(0);
             this.Errors.Clear();
         }
 
@@ -824,6 +841,7 @@ namespace WaveTracker.Audio {
                 stereoBiQuadFilter.Transform(l, r, out l, out r);
 
                 irConvolution.Transform(CurrentSample?.currentPlaybackPosition ?? 0, l, r, out l, out r);
+                delay.Transform(CurrentSample?.currentPlaybackPosition ?? 0, l, r, out l, out r);
 
                 left = l * 0.225f * bassBoost;
                 right = r * 0.225f * bassBoost;

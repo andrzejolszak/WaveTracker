@@ -2566,6 +2566,8 @@ namespace WaveTracker.UI {
             {Keys.NumPad3, '3'},
             {Keys.D4, '4'},
             {Keys.NumPad4, '4'},
+            {Keys.D5, '5'},
+            {Keys.NumPad5, '5'},
             {Keys.D7, '7'},
             {Keys.NumPad7, '7'},
             {Keys.D8, '8'},
