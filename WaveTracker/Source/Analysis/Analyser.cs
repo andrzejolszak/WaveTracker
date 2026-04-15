@@ -9,10 +9,8 @@ namespace MusicAnalyser.App.Analysis
 {
     public class Analyser
     {
-        public static int NOTE_BUFFER_SIZE = 10000;
         public static int CHORD_NOTE_OCCURENCE_OFFSET = 8;
 
-        public List<Note> Notes { get; set; }
         public List<Chord> Chords { get; set; }
         public string CurrentKey { get; set; }
         public string CurrentMode { get; set; }
@@ -21,7 +19,6 @@ namespace MusicAnalyser.App.Analysis
         private static List<Note> aggregateNotes = new List<Note>();
         private static List<Note>[] chordNotes;
         private static double[] notePercent = new double[12];
-        private List<int> avgError = new List<int>();
         private static readonly Color[] noteColors = new Color[12];
         private Chord prevChord;
         private string majorKeyRoot;
@@ -32,86 +29,10 @@ namespace MusicAnalyser.App.Analysis
             Chords = new List<Chord>();
         }
 
-        public List<int> GetAvgError() { return avgError; }
         public Music GetMusic() { return music; }
         public List<Note>[] GetChordNotes() { return chordNotes; }
-        public void ResetError() { avgError.Clear(); }
         public double[] GetNotePercents() { return notePercent; }
         public Color[] GetNoteColors() { return noteColors; }
-
-        /*
-         * Identifies valid notes from the peaks in the frequency spectrum and plots them
-         */
-        public void GetNotes(Dictionary<double, double> fftPeaks, double[] positions, int timeStamp)
-        {
-            music.NoteError = new List<int>();
-            Notes = new List<Note>();
-
-            if (fftPeaks == null)
-                return;
-
-            int i = 0;
-            foreach (double freq in fftPeaks.Keys)
-            {
-                string noteName = music.GetNote(freq);
-
-                if (noteName == "N/A") // Ignore peaks that are not valid notes
-                    continue;
-
-                Note myNote;
-                if (positions == null || positions.Length == 0)
-                    myNote = CreateNote(noteName, freq, fftPeaks[freq], freq, timeStamp);
-                else
-                    myNote = CreateNote(noteName, freq, fftPeaks[freq], positions[i], timeStamp);
-                aggregateNotes.Add(myNote);
-                Notes.Add(myNote);
-                music.CountNote(noteName);
-                BufferNote(myNote.NoteIndex);
-                i++;
-            }
-            CalculateNotePercentages();
-
-            if (music.NoteError.Count > 0)
-                avgError.Add((int)music.NoteError.Average());
-        }
-
-        /*
-       * Calculates a color dynamically based on the actualValue in relation to the specified range of values
-       */
-        public static Color GetNoteColor(int rangeStart, int rangeEnd, int actualValue)
-        {
-            if (rangeStart >= rangeEnd) return Color.Black;
-
-            actualValue = Math.Min(actualValue, rangeEnd);
-            int max = rangeEnd - rangeStart;
-            int value = actualValue - rangeStart;
-
-            int blue = 0;
-            int green = Math.Min(255 * value / (max / 2), 255);
-            int red = 0;
-            if (value > max / 2)
-            {
-                blue = Math.Min(value - (max / 2), 255);
-                green = 255 - blue;
-                red = 0;
-            }
-            else
-                red = 255 - green;
-
-            return Color.FromArgb((byte)red, (byte)green, (byte)blue);
-        }
-
-        public void CalculateNotePercentages()
-        {
-            for(int i = 0; i < music.NoteOccurences.Length; i++)
-            {
-                int occurences = music.NoteOccurences[i];
-                double percent = ((double)occurences / (double)music.NoteBuffer.Count) * 100;
-                notePercent[i] = percent;
-                Color noteColor = GetNoteColor(0, (int)(10000 / 7), (int)(percent * 100));
-                noteColors[i] = noteColor; 
-            }
-        }
 
         private Note CreateNote(string name, double freq, double gain, double position, int timeStamp)
         {
@@ -124,20 +45,6 @@ namespace MusicAnalyser.App.Analysis
             myNote.Position = position;
             myNote.TimeStamp = timeStamp;
             return myNote;
-        }
-
-        /*
-         * Handles the note buffer
-         */
-        public void BufferNote(int noteIndex)
-        {
-            music.NoteBuffer.Add(noteIndex);
-            if (music.NoteBuffer.Count > NOTE_BUFFER_SIZE)
-            {
-                int noteToRemove = music.NoteBuffer[0];
-                music.NoteOccurences[noteToRemove]--;
-                music.NoteBuffer.RemoveAt(0);
-            }
         }
 
         /*
@@ -426,10 +333,8 @@ namespace MusicAnalyser.App.Analysis
         public void DisposeAnalyser()
         {
             aggregateNotes.Clear();
-            avgError.Clear();
             notePercent = new double[12];
             music.DisposeMusic();
-            GC.Collect();
         }
     }
 }

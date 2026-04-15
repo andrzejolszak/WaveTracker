@@ -182,7 +182,7 @@ namespace WaveTracker.Midi {
                     }
                 }
                 else {
-                    int octave = noteNumber / 12;
+                    int octave = noteNumber / 12 - 1;
                     return String.Format("{0}{1}", NoteNames[noteNumber % 12], octave);
                 }
             }

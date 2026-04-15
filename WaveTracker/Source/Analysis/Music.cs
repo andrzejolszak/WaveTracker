@@ -4,8 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MusicAnalyser.App.Analysis
-{
+namespace MusicAnalyser.App.Analysis {
+    // C-4, C#4, C-4=60
+    //         private static readonly string[] NoteNames = new string[] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+    //                int octave = noteNumber / 12;
+    //                return String.Format("{0}{1}", NoteNames[noteNumber % 12], octave);
+    // Helpers.MIDINoteToText
     public class Music
     {
         public static float MODAL_ROOT_DIFF = 4.0f;
@@ -52,15 +56,11 @@ namespace MusicAnalyser.App.Analysis
         }
 
         public int[] NoteOccurences { get; set; }
-        public List<int> NoteBuffer { get; set; }
-        public List<int> NoteError { get; set; }
         private double percentChange = 0;
 
         public Music()
         {
             NoteOccurences = new int[12];
-            NoteBuffer = new List<int>();
-            NoteError = new List<int>();
         }
 
         public string GetNote(double freq)
@@ -87,8 +87,6 @@ namespace MusicAnalyser.App.Analysis
 
                 if (freq >= fundLow && freq <= fundHigh)
                 {
-                    double errorCents = ((freq - fundChange) / fundChange * 100) / CentPercent;
-                    NoteError.Add((int)errorCents);
                     return NoteMap[fundFreq] + octave.ToString();
                 }
             }
@@ -103,24 +101,29 @@ namespace MusicAnalyser.App.Analysis
                 case "C":
                     return 0;
                 case "Db":
+                case "C#":
                     return 1;
                 case "D":
                     return 2;
                 case "Eb":
+                case "D#":
                     return 3;
                 case "E":
                     return 4;
                 case "F":
                     return 5;
                 case "Gb":
+                case "F#":
                     return 6;
                 case "G":
                     return 7;
                 case "Ab":
+                case "G#":
                     return 8;
                 case "A":
                     return 9;
                 case "Bb":
+                case "A#":
                     return 10;
                 case "B":
                     return 11;
@@ -499,8 +502,6 @@ namespace MusicAnalyser.App.Analysis
         public void ResetNoteCount()
         {
             NoteOccurences = new int[12];
-            NoteBuffer.Clear();
-            NoteError.Clear();
         }
 
         public void SetTuningPercent(int value)
