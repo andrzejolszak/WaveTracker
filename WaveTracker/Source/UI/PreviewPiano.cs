@@ -1,4 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
+using MusicAnalyser.App.Analysis;
+using System.Collections.Generic;
 
 namespace WaveTracker.UI {
     public class PreviewPiano : Clickable {
@@ -32,7 +34,9 @@ namespace WaveTracker.UI {
                     DrawSprite((BaseKeyIndex - 12) * 4, 0, new Rectangle(56, 80, 4, 24));
                 }
             }
+
             // draw the pressed note
+            int minPressedNote = int.MaxValue;
             foreach (int i in pressedNote) {
                 if (i >= 12 && i < 132) {
                     if (Helpers.IsNoteBlackKey(i)) {
@@ -41,7 +45,16 @@ namespace WaveTracker.UI {
                     else {
                         DrawSprite((i - 12) * 4, 0, new Rectangle(48, 80, 4, 24));
                     }
+
+                    if (i < minPressedNote) {
+                        minPressedNote = i;
+                    }
                 }
+            }
+
+            if (!string.IsNullOrEmpty(PianoInput.HeldDownNotesDesc) && pressedNote.Length > 0)
+            {
+                Write(PianoInput.HeldDownNotesDesc, (minPressedNote - 12) * 4 + 2, 25, Color.RoyalBlue);
             }
         }
     }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MusicAnalyser.App.Analysis {
     // C-4, C#4, C-4=60
@@ -53,6 +51,10 @@ namespace MusicAnalyser.App.Analysis {
         public static int GetNoteIndexFromFrequency(double frequency)
         {
             return (int)Math.Round(12 * (Math.Log(frequency, 2) - Math.Log(32.7, 2)));
+        }
+
+        public static double GetFrequencyFromNoteIndexFrom(int noteNumber) {
+            return Math.Round(32.7032 * Math.Pow(2, (noteNumber / 12.0) - 2), 2);
         }
 
         public int[] NoteOccurences { get; set; }
@@ -339,7 +341,7 @@ namespace MusicAnalyser.App.Analysis {
                         intervals.Remove(11);
                         return "maj7" + AddRemainingNotes(intervals);
                     }
-                    return "" + AddRemainingNotes(intervals);
+                    return "maj" + AddRemainingNotes(intervals);
                 }
 
                 if (intervals.Contains(3) && intervals.Contains(7)) // Minor chords

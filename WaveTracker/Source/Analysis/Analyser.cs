@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MusicAnalyser.App.Analysis
 {
@@ -11,41 +8,13 @@ namespace MusicAnalyser.App.Analysis
     {
         public static int CHORD_NOTE_OCCURENCE_OFFSET = 8;
 
-        public List<Chord> Chords { get; set; }
         public string CurrentKey { get; set; }
         public string CurrentMode { get; set; }
 
-        private Music music;
-        private static List<Note> aggregateNotes = new List<Note>();
-        private static List<Note>[] chordNotes;
-        private static double[] notePercent = new double[12];
-        private static readonly Color[] noteColors = new Color[12];
-        private Chord prevChord;
-        private string majorKeyRoot;
-
-        public Analyser()
-        {
-            music = new Music();
-            Chords = new List<Chord>();
-        }
-
-        public Music GetMusic() { return music; }
-        public List<Note>[] GetChordNotes() { return chordNotes; }
-        public double[] GetNotePercents() { return notePercent; }
-        public Color[] GetNoteColors() { return noteColors; }
-
-        private Note CreateNote(string name, double freq, double gain, double position, int timeStamp)
-        {
-            Note myNote = new Note();
-            myNote.Name = name.Substring(0, name.Length - 1);
-            myNote.Octave = Convert.ToInt32(name.Substring(name.Length - 1, 1));
-            myNote.NoteIndex = Music.GetNoteIndex(name);
-            myNote.Frequency = freq;
-            myNote.Magnitude = gain;
-            myNote.Position = position;
-            myNote.TimeStamp = timeStamp;
-            return myNote;
-        }
+        private Music music = new Music();
+        private List<Note> aggregateNotes = new List<Note>();
+        private List<Note>[] chordNotes;
+        private double[] notePercent = new double[12];
 
         /*
          * Predicts the key signature of the audio based on the distrubution of notes identified
@@ -68,7 +37,6 @@ namespace MusicAnalyser.App.Analysis
             else
                 CurrentKey = keyRoot + " Major";
 
-            majorKeyRoot = keyRoot;
             CurrentMode = Music.GetMode(notePercent, keyRoot, minorRoot);
         }
 
@@ -170,9 +138,8 @@ namespace MusicAnalyser.App.Analysis
         /*
          *  Finds all possible chords from sequence of chord notes
          */
-        public void FindChords()
+        public void FindChords(List<Chord> container, Chord? prevChord)
         {
-            Chords.Clear();
             List<Note> myChordNotes = new List<Note>();
             for (int i = 0; i < chordNotes.Length; i++) // Creates iterable chord notes list
             {
@@ -199,109 +166,106 @@ namespace MusicAnalyser.App.Analysis
                 }
                 string chordQuality = Music.GetChordQuality(intervals, out int fifthOmitted); // Determines chord quality from intervals
                 if (chordQuality != "N/A")
-                    Chords.Add(CreateChord(myChordNotes[0].Name, chordQuality, myChordNotes, fifthOmitted));
+                    container.Add(Chord.CreateChord(myChordNotes[0].Name, chordQuality, myChordNotes, fifthOmitted));
 
                 myChordNotes = NextChord(myChordNotes); // Iterates chord root note
             }
-            AdjustChordProbabilities();
-            Chords = Chords.OrderByDescending(x => x.Probability).ToList();
-            if(Chords.Count > 0)
-                prevChord = Chords[0];
+
+            AdjustChordProbabilities(container, prevChord);
+            container.Sort((x, y) => x.Probability.CompareTo(y.Probability));
         }
 
-        private Chord CreateChord(string root, string quality, List<Note> notes, int fifthOmitted)
+        /*
+ *  Finds all possible chords from sequence of chord notes
+ */
+        public static Chord? FindChord(List<Note> notes, Chord? prevChord) 
         {
-            Note[] tempNotes = new Note[notes.Count];
-            Array.Copy(notes.ToArray(), tempNotes, notes.Count);
-            int numExtensions = 0;
-            if(quality.Contains("("))
+            List<int> intervals = new List<int>();
+            for (int j = 1; j < notes.Count; j++) // Finds interval between adjacent notes
             {
-                string extensions = quality.Substring(quality.IndexOf("(") + 1);
-                numExtensions = extensions.Count(f => f == ',') + 1;
+                int noteDifference = notes[j].NoteIndex - notes[0].NoteIndex;
+                if (noteDifference < 0)
+                    noteDifference = 12 + noteDifference;
+                intervals.Add(noteDifference);
             }
-            Chord myChord = new Chord
-            {
-                Name = root + quality,
-                Root = root,
-                Quality = quality,
-                Notes = tempNotes.ToList(),
-                NumExtensions = numExtensions,
-                FifthOmitted = fifthOmitted
-            };
-            return myChord;
+            string chordQuality = Music.GetChordQuality(intervals, out int fifthOmitted); // Determines chord quality from intervals
+            if (chordQuality != "N/A")
+                return Chord.CreateChord(notes[0].Name, chordQuality, notes, fifthOmitted);
+
+            return null;
         }
 
-        private void AdjustChordProbabilities()
+        private void AdjustChordProbabilities(List<Chord> chords, Chord? prevChord)
         {
-            if (Chords.Count == 0)
+            if (chords.Count == 0)
                 return;
 
-            double[] rootMagnitudes = new double[Chords.Count];
-            for (int i = 0; i < Chords.Count; i++)
-                rootMagnitudes[i] = Chords[i].Notes[0].Magnitude;
+            double[] rootMagnitudes = new double[chords.Count];
+            for (int i = 0; i < chords.Count; i++)
+                rootMagnitudes[i] = chords[i].Notes[0].Magnitude;
             double avgMagnitude = rootMagnitudes.Average();
             for (int i = 0; i < rootMagnitudes.Length; i++)
                 rootMagnitudes[i] -= avgMagnitude;
             rootMagnitudes = Normalise(rootMagnitudes);
 
-            double[] rootOccurences = new double[Chords.Count];
-            for (int i = 0; i < Chords.Count; i++)
-                rootOccurences[i] = Chords[i].Notes[0].Octave;
+            double[] rootOccurences = new double[chords.Count];
+            for (int i = 0; i < chords.Count; i++)
+                rootOccurences[i] = chords[i].Notes[0].Octave;
             double avgOccurences = rootOccurences.Average();
             for (int i = 0; i < rootOccurences.Length; i++)
                 rootOccurences[i] -= avgOccurences;
             rootOccurences = Normalise(rootOccurences);
 
-            double[] rootFreq = new double[Chords.Count];
-            for (int i = 0; i < Chords.Count; i++)
-                rootFreq[i] = Chords[i].Notes[0].Frequency;
+            double[] rootFreq = new double[chords.Count];
+            for (int i = 0; i < chords.Count; i++)
+                rootFreq[i] = chords[i].Notes[0].Frequency;
             double avgFreq = rootFreq.Average();
             for (int i = 0; i < rootFreq.Length; i++)
                 rootFreq[i] = avgFreq - rootFreq[i];
             rootFreq = Normalise(rootFreq);
 
-            double[] chordExtensions = new double[Chords.Count];
-            for (int i = 0; i < Chords.Count; i++)
-                chordExtensions[i] = Chords[i].NumExtensions;
+            double[] chordExtensions = new double[chords.Count];
+            for (int i = 0; i < chords.Count; i++)
+                chordExtensions[i] = chords[i].NumExtensions;
             double avgExtensions = chordExtensions.Average();
             for (int i = 0; i < chordExtensions.Length; i++)
                 chordExtensions[i] = avgExtensions - chordExtensions[i];
             chordExtensions = Normalise(chordExtensions);
 
-            double[] notSuspended = new double[Chords.Count];
-            for (int i = 0; i < Chords.Count; i++)
+            double[] notSuspended = new double[chords.Count];
+            for (int i = 0; i < chords.Count; i++)
             {
-                if (Chords[i].Name.Contains("sus"))
+                if (chords[i].Name.Contains("sus"))
                     notSuspended[i] = -1;
                 else
                     notSuspended[i] = 1;
             }
 
-            double[] fifthOmitted = new double[Chords.Count];
-            for (int i = 0; i < Chords.Count; i++)
-                fifthOmitted[i] = Chords[i].FifthOmitted;
+            double[] fifthOmitted = new double[chords.Count];
+            for (int i = 0; i < chords.Count; i++)
+                fifthOmitted[i] = chords[i].FifthOmitted;
             fifthOmitted = Normalise(fifthOmitted);
 
-            double[] chordPredictedBefore = new double[Chords.Count];
+            double[] chordPredictedBefore = new double[chords.Count];
             if (prevChord != null)
             {
-                for (int i = 0; i < Chords.Count; i++)
+                for (int i = 0; i < chords.Count; i++)
                 {
-                    if (Chords[i].Root == prevChord.Root)
+                    if (chords[i].Root == prevChord.Root)
                         chordPredictedBefore[i] += 1;
                 }
             }
 
-            double[] overallProb = new double[Chords.Count];
-            for (int i = 0; i < Chords.Count; i++)
+            double[] overallProb = new double[chords.Count];
+            for (int i = 0; i < chords.Count; i++)
                 //overallProb[i] = 1.0 * rootMagnitudes[i] + 1.0 * rootOccurences[i] + 1.0 * chordExtensions[i] + 2 * rootFreq[i] + 1.0 * fifthOmitted[i] + 1.5 * chordPredictedBefore[i];
                 overallProb[i] = 1.1*rootMagnitudes[i] + 1.0*rootOccurences[i] + 2.3*chordExtensions[i] + 1.8*rootFreq[i] + 2.5*notSuspended[i] + 1.0*fifthOmitted[i] + 0.7*chordPredictedBefore[i];
             overallProb = Normalise(overallProb);
             double probSum = overallProb[0] + 1;
-            for (int i = 1; i < Chords.Count; i++)
+            for (int i = 1; i < chords.Count; i++)
                 probSum += overallProb[i] + 1;
-            for (int i = 0; i < Chords.Count; i++)
-                Chords[i].Probability = (overallProb[i] + 1) / probSum * 100;
+            for (int i = 0; i < chords.Count; i++)
+                chords[i].Probability = (overallProb[i] + 1) / probSum * 100;
         }
 
         private double[] Normalise(double[] values)

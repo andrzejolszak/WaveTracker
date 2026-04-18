@@ -1,7 +1,9 @@
-﻿using System;
+﻿using MusicAnalyser.App.Analysis;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using WaveTracker.Audio;
 using WaveTracker.Midi;
 using WaveTracker.Tracker;
@@ -25,10 +27,27 @@ namespace WaveTracker {
         /// </summary>
         public static List<MidiInDeviceID> MidiDevices { get; private set; }
         public static MidiInDeviceID CurrentMidiDevice { get; private set; }
+        public static string? HeldDownNotesDesc { get; internal set; }
 
         public static void Initialize() {
             ReadMidiDevices();
             SetMIDIDevice(App.Settings.MIDI.InputDevice);
+        }
+
+        private static void RefreshDesc() {
+            List<Note> notes = CurrentlyHeldDownNotes.Keys.OrderBy(x => x).Select(Note.Create).ToList();
+            if (notes.Count == 0) {
+                HeldDownNotesDesc = string.Empty;
+                return;
+            }
+
+            if (notes.Count == 1) {
+                HeldDownNotesDesc = notes[0].Name;
+                return;
+            }
+
+            Chord? ch = Analyser.FindChord(notes, null);
+            HeldDownNotesDesc = ch?.Name ?? string.Empty;
         }
 
         public static void Update() {
@@ -147,6 +166,7 @@ namespace WaveTracker {
 
                 int sanitizedVelocity = velocity ?? 99;
                 CurrentlyHeldDownNotes.Add(note, (sanitizedVelocity, freeChannel));
+                RefreshDesc();
                 if (!Playback.IsPlaying) {
                     AudioEngine.ResetTicks();
                 }
@@ -169,6 +189,8 @@ namespace WaveTracker {
             if (!CurrentlyHeldDownNotes.Remove(note, out (int Velocity, Channel Channel) channel)) {
                 return;
             }
+
+            RefreshDesc();
 
             if (!Playback.IsPlaying) {
                 AudioEngine.ResetTicks();
