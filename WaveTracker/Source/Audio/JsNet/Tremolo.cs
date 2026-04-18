@@ -13,8 +13,8 @@ namespace JSNet
     {
         public Tremolo()
         {
-            AddSlider(4,0,100,1,"frequency (Hz)");
-            AddSlider(-6,-60,0,1,"amount (dB)");
+            AddSlider(5,0,100,1,"frequency (Hz)");
+            AddSlider(-0,-60,0,1,"amount (dB)");
             AddSlider(0, 0, 1, 0.1f, "stereo separation (0..1)");
         }
 

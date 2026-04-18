@@ -13,11 +13,11 @@ namespace JSNet
     {
         public Chorus()
         {
-            AddSlider(15,1,250,1,"chorus length (ms)");
-            AddSlider(1,1,8,1,"number of voices");
-            AddSlider(0.5f,0.1f,16,0.1f,"rate (hz)");
+            AddSlider(50,1,250,1,"chorus length (ms)");
+            AddSlider(3,1,8,1,"number of voices");
+            AddSlider(2f,0.1f,16,0.1f,"rate (hz)");
             AddSlider(0.7f,0,1,0.1f,"pitch fudge factor");
-            AddSlider(-6,-100,12,1,"wet mix (dB)");
+            AddSlider(12,-100,12,1,"wet mix (dB)");
             AddSlider(-6,-100,12,1,"dry mix (dB)");
         }
 

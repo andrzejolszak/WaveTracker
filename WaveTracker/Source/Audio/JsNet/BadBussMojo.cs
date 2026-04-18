@@ -40,10 +40,10 @@ namespace JSNet
             AddSlider(0, -60, 0, 0.01f, "Neg. Thresh (dB)");
             AddSlider(1, 1, 2, 0.001f, "Pos. Nonlinearity");
             AddSlider(1, 1, 2, 0.001f, "Neg. Nonlinearity");
-            AddSlider(0, 0, 6, 0.01f, "Pos. Knee (dB)");
-            AddSlider(0, 0, 6, 0.01f, "Neg. Knee (dB)");
-            AddSlider(0, 0, 100, 0.1f, "Mod A");
-            AddSlider(0, 0, 100, 0.1f, "Mod B");
+            AddSlider(3, 0, 6, 0.01f, "Pos. Knee (dB)");
+            AddSlider(5, 0, 6, 0.01f, "Neg. Knee (dB)");
+            AddSlider(100, 0, 100, 0.1f, "Mod A");
+            AddSlider(100, 0, 100, 0.1f, "Mod B");
         }
 
         float log2db;

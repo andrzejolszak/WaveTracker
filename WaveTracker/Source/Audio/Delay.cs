@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JSNet;
+using System;
 using System.Collections.Generic;
 
 namespace WaveTracker.Audio {
@@ -6,7 +7,7 @@ namespace WaveTracker.Audio {
 
         float[] bufferL;
         float[] bufferR;
-
+        private Effect e;
         int positionL = 0;
         int positionR = 0;
         float decay = 0f;
@@ -15,6 +16,10 @@ namespace WaveTracker.Audio {
         public Delay() {
             bufferL = new float[44100 * 10];
             bufferR = new float[44100 * 10];
+
+            this.e = new JSNet.Flanger();
+            e.Init();
+            e.Slider();
         }
 
         public void SetParams(double delay, float decay) {
@@ -27,6 +32,14 @@ namespace WaveTracker.Audio {
         }
 
         public void Transform(int playbackPosition, float inputL, float inputR, out float outputL, out float outputR) {
+            outputL = inputL; 
+            outputR = inputR;
+
+            if (delayInSamples == 0)
+                return;
+
+            // this.e.Sample(ref outputL, ref outputR);
+            // return;
 
             outputL = delayInSamples == 0 ? inputL : Apply(bufferL, inputL, ref positionL);
             outputR = delayInSamples == 0 ? inputR : Apply(bufferR, inputR, ref positionR);

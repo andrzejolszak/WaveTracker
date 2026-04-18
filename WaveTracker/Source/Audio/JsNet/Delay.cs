@@ -23,11 +23,11 @@ namespace JSNet
         public Delay()
         {
             AddSlider(300, 0, 4000, 20, "delay (ms)");
-            AddSlider(-5, -120, 6, 1, "feedback (dB)");
+            AddSlider(-2, -120, 6, 1, "feedback (dB)");
             AddSlider(0, -120, 6, 1, "mix in (dB)");
-            AddSlider(-6, -120, 6, 1, "output wet (dB)");
+            AddSlider(6, -120, 6, 1, "output wet (dB)");
             AddSlider(0, -120, 6, 1, "output dry (dB)");
-            Slider resampleSlider = AddSlider(0, 0, 1, 1, "resample on length change");
+            Slider resampleSlider = AddSlider(1, 0, 1, 1, "resample on length change");
             resampleSlider.DiscreteValueText.Add("off");
             resampleSlider.DiscreteValueText.Add("on");
         }

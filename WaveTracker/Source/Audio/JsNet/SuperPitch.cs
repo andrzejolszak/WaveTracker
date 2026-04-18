@@ -30,8 +30,8 @@ namespace JSNet
             AddSlider(0, -100, 100, 1, "Pitch adjust (cents)");
             AddSlider(0, -12, 12, 1, "Pitch adjust (semitones)");
             AddSlider(1, -12, 12, 1, "Pitch adjust (octaves)");
-            AddSlider(50, 0, 200, 1, "Window size (ms)");
-            AddSlider(20, 0.05f, 50, 0.5f, "Overlap size (ms)");
+            AddSlider(100, 0, 200, 1, "Window size (ms)");
+            AddSlider(50, 0.05f, 50, 0.5f, "Overlap size (ms)");
             AddSlider(0, -120, 6, 1, "Wet mix (dB)");
             AddSlider(-120, -120, 6, 1, "Dry mix (dB)");
             Slider filterSlider = AddSlider(1, 0, 1, 1, "Filter"); // {NO,YES}filter

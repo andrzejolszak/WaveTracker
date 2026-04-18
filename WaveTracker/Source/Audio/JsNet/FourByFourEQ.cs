@@ -11,8 +11,8 @@ namespace JSNet
     {
         public FourByFourEQ()
         {
-            AddSlider(0, 0, 100, 0.1f, "lo drive%");
-            AddSlider(0, -12, 12, 0.1f, "lo gain");
+            AddSlider(10, 0, 100, 0.1f, "lo drive%");
+            AddSlider(2, -12, 12, 0.1f, "lo gain");
             AddSlider(0, 0, 100, 0.1f, "mid drive%");
             AddSlider(0, -12, 12, 0.1f, "mid gain");
             AddSlider(0, 0, 100, 0.1f, "hi drive%");

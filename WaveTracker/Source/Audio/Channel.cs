@@ -277,7 +277,8 @@ namespace WaveTracker.Audio {
                 return;
             }
 
-            this.delay.SetParams((parameter + 1) / 16, parameter % 16);
+            this.delayParam = parameter;
+            this.delay.SetParams((delayParam + 1) / 16, delayParam % 16);
         }
 
         public void SetVolume(int vol) {

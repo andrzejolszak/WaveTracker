@@ -9,11 +9,11 @@ namespace JSNet
     {
         public Flanger()
         {
-            AddSlider(6, 0, 200, 1, "length (ms)");
-            AddSlider(-120, -120, 6, 1, "feedback (dB)");
-            AddSlider(-6, -120, 6, 1, "wet mix (dB)");
-            AddSlider(-6, -120, 6, 1, "dry mix (dB)");
-            AddSlider(0.6f, 0.001f, 100, 0.1f, "rate (hz)");
+            AddSlider(100, 0, 200, 1, "length (ms)");
+            AddSlider(-10, -120, 6, 1, "feedback (dB)");
+            AddSlider(-0, -120, 6, 1, "wet mix (dB)");
+            AddSlider(-20, -120, 6, 1, "dry mix (dB)");
+            AddSlider(1f, 0.001f, 100, 0.1f, "rate (hz)");
         }
 
         float odelay;
