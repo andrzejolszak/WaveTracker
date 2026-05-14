@@ -288,12 +288,12 @@ namespace WaveTracker.Tracker {
             sampleDataR = sampleDataR.Skip(soundStartIndex).Take(soundEndIndex - soundStartIndex).ToArray();
         }
 
-        public float GetMonoSample(float time, float startPercentage) {
-            SampleTick(time, 0, startPercentage, out float l, out float r);
+        public float GetMonoSample(float time, float startPercentage, Channel channel) {
+            SampleTick(time, 0, startPercentage, channel, out float l, out float r);
             return (l + r) / 2f;
         }
 
-        public void SampleTick(float time, float stereoPhase, float startPercentage, out float outputL, out float outputR) {
+        public void SampleTick(float time, float stereoPhase, float startPercentage, Channel channel, out float outputL, out float outputR) {
             float sampleIndex = 0;
             int stereo = (int)(stereoPhase * 1000);
             float x = time * (sampleRate / BaseFrequency);
@@ -329,6 +329,9 @@ namespace WaveTracker.Tracker {
                 }
             }
 
+            outputL = 0;
+            outputR = 0;
+            
             currentPlaybackPosition = (int)sampleIndex;
             if (resampleMode == ResamplingMode.None) {
                 outputL = GetSampleAt(0, (int)(sampleIndex + stereo));
@@ -341,7 +344,7 @@ namespace WaveTracker.Tracker {
                 outputL = MathHelper.Lerp(GetSampleAt(0, one + stereo), GetSampleAt(0, two + stereo), by);
                 outputR = MathHelper.Lerp(GetSampleAt(1, one - stereo), GetSampleAt(1, two - stereo), by);
             }
-            else {
+            else if (resampleMode == ResamplingMode.Mix) {
                 int one = (int)sampleIndex;
                 int two = one + 1;
                 float by = (float)(sampleIndex % 1f);
@@ -352,6 +355,9 @@ namespace WaveTracker.Tracker {
                 outputR += GetSampleAt(1, (int)sampleIndex - stereo);
                 outputL /= 2f;
                 outputR /= 2f;
+            }
+            else if (resampleMode == ResamplingMode.Smb) {
+                // channel.
             }
 
             outputL *= 1.5f;

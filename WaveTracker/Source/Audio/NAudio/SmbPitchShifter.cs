@@ -49,6 +49,21 @@ namespace WaveTracker.Audio.NAudio.Dsp
     *
     *****************************************************************************/
     /// <summary>
+    /// Author: Freefall
+    /// Date: 05.08.16
+    /// Based on: the port of Stephan M. Bernsee´s pitch shifting class
+    /// Port site: https://sites.google.com/site/mikescoderama/pitch-shifting
+    /// Test application and github site: https://github.com/Freefall63/NAudio-Pitchshifter
+    /// 
+    /// NOTE: I strongly advice to add a Limiter for post-processing.
+    /// For my needs the FastAttackCompressor1175 provides acceptable results:
+    /// https://github.com/Jiyuu/SkypeFX/blob/master/JSNet/FastAttackCompressor1175.cs
+    ///
+    /// UPDATE: Added a simple Limiter based on the pydirac implementation.
+    /// https://github.com/echonest/remix/blob/master/external/pydirac225/source/Dirac_LE.cpp
+    /// 
+    ///</summary>
+    /// <summary>
     /// SMB Pitch Shifter
     /// </summary>
     public class SmbPitchShifter
@@ -65,26 +80,74 @@ namespace WaveTracker.Audio.NAudio.Dsp
         private float[] gAnaMagn = new float[MAX_FRAME_LENGTH];
         private float[] gSynFreq = new float[MAX_FRAME_LENGTH];
         private float[] gSynMagn = new float[MAX_FRAME_LENGTH];
-        private long gRover;
+
 
         /// <summary>
-        /// Pitch Shift 
+        /// Read from this sample provider
         /// </summary>
-        public void PitchShift(float pitchShift, long numSampsToProcess,
-            float sampleRate, float[] indata)
-        {
-            PitchShift(pitchShift, numSampsToProcess, 2048L, 10L, sampleRate, indata);
+        public float[] PitchShift(float[] buffer, int offset, int count, float sampleRate, float pitch) {
+            if (pitch == 1f) {
+                return buffer;
+            }
+
+            var res = new float[count];
+            var index = 0;
+            for (var sample = offset; sample <= count + offset - 1; sample++) {
+                res[index] = buffer[sample];
+                index += 1;
+            }
+
+            // Pitch Factor (0.5f = octave down, 1.0f = normal, 2.0f = octave up)
+            this.PitchShift(pitch, count, 2048L, 10L, sampleRate, res);
+            index = 0;
+            for (var sample = offset; sample <= count + offset - 1; sample++) {
+                buffer[sample] = Limiter(res[index]);
+                index += 1;
+            }
+
+            return res;
+        }
+
+        private static float Limiter(float sample) {
+            const float LIM_THRESH = 0.95f;
+            const float LIM_RANGE = (1f - LIM_THRESH);
+            const float M_PI_2 = (float)(Math.PI / 2);
+
+            float res;
+            if ((LIM_THRESH < sample)) {
+                res = (sample - LIM_THRESH) / LIM_RANGE;
+                res = (float)((Math.Atan(res) / M_PI_2) * LIM_RANGE + LIM_THRESH);
+            }
+            else if ((sample < -LIM_THRESH)) {
+                res = -(sample + LIM_THRESH) / LIM_RANGE;
+                res = -(float)((Math.Atan(res) / M_PI_2) * LIM_RANGE + LIM_THRESH);
+            }
+            else {
+                res = sample;
+            }
+            return res;
         }
 
         /// <summary>
         /// Pitch Shift 
         /// </summary>
-        public void PitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize,
+        private void PitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize,
             long osamp, float sampleRate, float[] indata)
         {
+            Array.Clear(gInFIFO);
+            Array.Clear(gOutFIFO);
+            Array.Clear(gFFTworksp);
+            Array.Clear(gLastPhase);
+            Array.Clear(gSumPhase);
+            Array.Clear(gOutputAccum);
+            Array.Clear(gAnaFreq);
+            Array.Clear(gAnaMagn);
+            Array.Clear(gSynFreq);
+            Array.Clear(gSynMagn);
+
             double magn, phase, tmp, window, real, imag;
             double freqPerBin, expct;
-            long i, k, qpd, index, inFifoLatency, stepSize, fftFrameSize2;
+            long i, k, qpd, index, inFifoLatency, stepSize, fftFrameSize2, gRover = 0;
 
 
             float[] outdata = indata;
@@ -239,7 +302,7 @@ namespace WaveTracker.Audio.NAudio.Dsp
         /// Short Time Fourier Transform
         /// </summary>
 
-        public void ShortTimeFourierTransform(float[] fftBuffer, long fftFrameSize, long sign)
+        private void ShortTimeFourierTransform(float[] fftBuffer, long fftFrameSize, long sign)
         {
             float wr, wi, arg, temp;
             float tr, ti, ur, ui;

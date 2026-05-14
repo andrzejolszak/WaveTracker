@@ -391,8 +391,8 @@ namespace WaveTracker.UI {
                 // draw wave 
                 if (displayAsLines) {
                     for (int i = 0; i < drawingRegion.width; ++i) {
-                        int y1 = drawingRegion.y + drawingRegion.height / 2 - (int)(CurrentWave.GetSampleAtPosition(i / (float)drawingRegion.width) * drawingRegion.height / 2) - 3;
-                        int y2 = drawingRegion.y + drawingRegion.height / 2 - (int)(CurrentWave.GetSampleAtPosition((i + 1) / (float)drawingRegion.width) * drawingRegion.height / 2) - 3;
+                        int y1 = drawingRegion.y + drawingRegion.height / 2 - (int)(CurrentWave.GetSampleAtPosition(i / (float)drawingRegion.width, null) * drawingRegion.height / 2) - 3;
+                        int y2 = drawingRegion.y + drawingRegion.height / 2 - (int)(CurrentWave.GetSampleAtPosition((i + 1) / (float)drawingRegion.width, null) * drawingRegion.height / 2) - 3;
                         if (y1 > y2) {
                             y1++;
                             y2++;

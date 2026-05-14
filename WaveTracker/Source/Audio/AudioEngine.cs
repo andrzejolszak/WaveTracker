@@ -431,6 +431,7 @@ namespace WaveTracker.Audio {
         None,
         Linear,
         Mix,
+        Smb,
     }
     public enum SampleRate {
         _11025,

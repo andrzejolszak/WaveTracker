@@ -62,7 +62,7 @@ namespace WaveTracker.Audio {
                 if (ffmpeg.avcodec_open2(codecCtx, codec, null) < 0)
                     throw new Exception("Failed to read audio file: cannot open codec");
 
-                if (codecCtx->channel_layout == 0) {
+                if (codecCtx-> channel_layout == 0) {
                     // Fallback to default channel layout if not set
                     codecCtx->channel_layout = (ulong)ffmpeg.av_get_default_channel_layout(codecCtx->channels);
                 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using NCalc;
+using NCalc.LambdaCompilation;
 using System;
 using WaveTracker.Tracker;
 

@@ -540,7 +540,7 @@ namespace WaveTracker.Audio {
         /// </summary>
         public float CurrentFrequency { get; private set; }
 
-        public float EvaluateWave(float time) {
+        public float EvaluateWave(float time, Channel channel) {
             float s = waveSyncAmt.AdditiveValue / 99f * 8 + 1;
             if (time is < 0 or >= 1) {
                 time = Helpers.Mod(time, 1);
@@ -550,10 +550,10 @@ namespace WaveTracker.Audio {
                 time = Helpers.Mod(time, 1);
             }
             if (_fmSmooth > 0.001f) {
-                return CurrentWave.GetSampleMorphed(time + App.CurrentModule.WaveBank[(WaveIndex + 1) % 100].GetSampleAtPosition(time) * (_fmSmooth / 20f * (_fmSmooth / 20f)) / 2f, App.CurrentModule.WaveBank[(WaveIndex + 1) % 100], WaveMorphPosition, _waveStretchSmooth / 100f);
+                return CurrentWave.GetSampleMorphed(time + App.CurrentModule.WaveBank[(WaveIndex + 1) % 100].GetSampleAtPosition(time, this) * (_fmSmooth / 20f * (_fmSmooth / 20f)) / 2f, App.CurrentModule.WaveBank[(WaveIndex + 1) % 100], WaveMorphPosition, _waveStretchSmooth / 100f, this);
             }
             else {
-                return CurrentWave.GetSampleMorphed(time, App.CurrentModule.WaveBank[(WaveIndex + 1) % 100], WaveMorphPosition, _waveStretchSmooth / 100f);
+                return CurrentWave.GetSampleMorphed(time, App.CurrentModule.WaveBank[(WaveIndex + 1) % 100], WaveMorphPosition, _waveStretchSmooth / 100f, this);
 
             }
         }
@@ -781,11 +781,11 @@ namespace WaveTracker.Audio {
                         }
 
                         if (stereoPhaseOffset != 0) {
-                            sampleL = EvaluateWave((float)_time - stereoPhaseOffset);
-                            sampleR = EvaluateWave((float)_time + stereoPhaseOffset);
+                            sampleL = EvaluateWave((float)_time - stereoPhaseOffset, this);
+                            sampleR = EvaluateWave((float)_time + stereoPhaseOffset, this);
                         }
                         else {
-                            sampleR = sampleL = EvaluateWave((float)_time);
+                            sampleR = sampleL = EvaluateWave((float)_time, this);
                         }
                     }
                     else if (CurrentInstrument is NoiseInstrument) {
@@ -808,7 +808,7 @@ namespace WaveTracker.Audio {
                         }
                     }
                     else if (CurrentInstrument is SampleInstrument) {
-                        CurrentSample?.SampleTick((float)_time, stereoPhaseOffset, SampleStartOffset / 100f, out sampleL, out sampleR);
+                        CurrentSample?.SampleTick((float)_time, stereoPhaseOffset, SampleStartOffset / 100f, this, out sampleL, out sampleR);
 
                         sampleL *= 1.25f;
                         sampleR *= 1.25f;

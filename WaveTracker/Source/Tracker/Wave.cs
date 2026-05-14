@@ -248,7 +248,7 @@ namespace WaveTracker.Tracker {
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public float GetSampleMorphed(float t, Wave other, float interpolationAmt, float bendAmt) {
+        public float GetSampleMorphed(float t, Wave other, float interpolationAmt, float bendAmt, Channel channel) {
             if (t is < 0 or >= 1) {
                 t = Helpers.Mod(t, 1);
             }
@@ -257,8 +257,8 @@ namespace WaveTracker.Tracker {
                 t = GetBentTime(t, bendAmt); // faster bend algorithm
             }
             return interpolationAmt > 0.001f
-                ? MathHelper.Lerp(GetSampleAtPosition(t), other.GetSampleAtPosition(t), interpolationAmt)
-                : GetSampleAtPosition(t);
+                ? MathHelper.Lerp(GetSampleAtPosition(t, channel), other.GetSampleAtPosition(t, channel), interpolationAmt)
+                : GetSampleAtPosition(t, channel);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static float GetBentTime(float t, float bendAmt) {
@@ -284,7 +284,7 @@ namespace WaveTracker.Tracker {
         /// <param name="t"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float GetSampleAtPosition(float t) {
+        public float GetSampleAtPosition(float t, Channel? channel) {
             if (t is < 0 or >= 1) {
                 t = Helpers.Mod(t, 1);
             }
@@ -304,11 +304,18 @@ namespace WaveTracker.Tracker {
                 return lerpedSample;
             }
 
-            float nearestSample = betweenSamplesLerp > 0.5f ? sample2 : sample1;
+            if (resamplingMode == ResamplingMode.Linear) {
+                float nearestSample = betweenSamplesLerp > 0.5f ? sample2 : sample1;
 
-            float sampDifference = MathF.Abs(samples[index1] - samples[index2]);
+                float sampDifference = MathF.Abs(samples[index1] - samples[index2]);
 
-            return MathHelper.Lerp(lerpedSample, nearestSample, sampDifference / MaxSampleValue);
+                return MathHelper.Lerp(lerpedSample, nearestSample, sampDifference / MaxSampleValue);
+            }
+
+            if (resamplingMode == ResamplingMode.Smb) {
+            }
+            
+            return lerpedSample;
         }
 
         private static byte ConvertCharToDecimal(char c) { return (byte)"0123456789ABCDEFGHIJKLMNOPQRSTUV".IndexOf(c); }

@@ -197,8 +197,6 @@ namespace WaveTracker {
                     // Windows is incapable of finding the FFmpeg libraries if we don't do this.
                     Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + ffmpeg.RootPath);
                 }
-
-                Debug.WriteLine($"FFmpeg {ffmpeg.av_version_info()}");
             }
 
             SaveLoad.ReadRecentFiles();
